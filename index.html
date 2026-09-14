@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ztools — fast, private, and free developer tools that run entirely in your browser. JSON diff, JSON formatting, timestamp conversion and more."
+    />
+    <title>ztools — Developer Tools</title>
+    <script>
+      ;(function () {
+        try {
+          var saved = localStorage.getItem('ztools-theme')
+          var theme =
+            saved === 'dark' || saved === 'light'
+              ? saved
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch (e) {}
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
