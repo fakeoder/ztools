@@ -8,6 +8,7 @@ import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
 import ToolPlaceholder from './pages/ToolPlaceholder'
 import JsonFormat from './pages/tools/JsonFormat'
+import JsonDiff from './pages/tools/JsonDiff'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/json_format" element={<JsonFormat />} />
+          <Route path="/json_diff" element={<JsonDiff />} />
           <Route path="/:toolId" element={<ToolPlaceholder />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

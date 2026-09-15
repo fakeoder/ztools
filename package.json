@@ -10,7 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dmsnell/diff-match-patch": "^1.1.0",
+    "@tanstack/react-virtual": "^3.14.13",
     "i18next": "^26.4.2",
+    "jsondiffpatch": "^0.7.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.0.14",
