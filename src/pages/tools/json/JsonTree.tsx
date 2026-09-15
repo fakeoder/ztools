@@ -1,14 +1,9 @@
 import { memo, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  analyzeFields,
   analyzeValues,
   displayValue,
   getType,
-  isArrayOfObjects,
-  DISTINCT_DISPLAY_LIMIT,
-  FIELD_ENUM_ROW_LIMIT,
-  MAX_DISTINCT_TRACKED,
   type JsonValue,
 } from './analyze'
 
@@ -23,7 +18,6 @@ interface NodeProps {
   path: string
   value: JsonValue
   depth: number
-  enumKeys?: Set<string>
   mode: TreeMode
   initialForce: boolean | null
 }
@@ -38,7 +32,7 @@ function truncateDisplay(text: string, limit = VALUE_DISPLAY_LIMIT): string {
   return text.length > limit ? `${text.slice(0, limit)}…` : text
 }
 
-const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mode, initialForce }: NodeProps) {
+const JsonNode = memo(function JsonNode({ name, path, value, depth, mode, initialForce }: NodeProps) {
   const { t } = useTranslation()
   const type = getType(value)
   const isContainer = type === 'object' || type === 'array'
@@ -48,22 +42,10 @@ const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mo
   )
   const [visible, setVisible] = useState(CHILDREN_PAGE)
 
-  const arrayAnalysis = useMemo(
+  const typeCounts = useMemo(
     () => (mode === 'data' && isArray ? analyzeValues(value as JsonValue[]) : null),
     [mode, isArray, value],
   )
-  const enumDistinct = arrayAnalysis?.distinct ?? null
-  const isEnum = !!enumDistinct?.isEnum
-
-  const childEnumKeys = useMemo(() => {
-    if (mode !== 'data' || !open || !isArray) return undefined
-    const arr = value as JsonValue[]
-    if (arr.length > FIELD_ENUM_ROW_LIMIT || !isArrayOfObjects(arr)) return undefined
-    const fields = analyzeFields(arr)
-    const keys = new Set<string>()
-    for (const field of fields) if (field.distinct?.isEnum) keys.add(field.key)
-    return keys.size > 0 ? keys : undefined
-  }, [mode, open, isArray, value])
 
   const children = useMemo(() => {
     if (type === 'object') {
@@ -84,7 +66,7 @@ const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mo
   }, [type, isArray, path, value])
 
   const childrenCount = children?.length ?? 0
-  const showChildren = isContainer && open && !isEnum && children ? children.slice(0, visible) : null
+  const showChildren = isContainer && open && children ? children.slice(0, visible) : null
 
   return (
     <div className="jnode">
@@ -120,9 +102,9 @@ const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mo
               : t('tools:format.tree.items', { count: childrenCount })}
           </span>
         )}
-        {arrayAnalysis && arrayAnalysis.typeCounts.length > 0 && (
+        {typeCounts && typeCounts.length > 0 && (
           <span className="jelems">
-            {arrayAnalysis.typeCounts.map((tc) => (
+            {typeCounts.map((tc) => (
               <span className="jelem" key={tc.type}>
                 <span className={`jtype is-${tc.type}`}>{tc.type}</span>
                 <span className="jtimes">×{tc.count}</span>
@@ -130,16 +112,17 @@ const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mo
             ))}
           </span>
         )}
-        {isEnum && <span className="jenum-badge">{t('tools:format.enumLabel')}</span>}
-        {type === 'object' && enumKeys?.has(name) && (
-          <span className="jenum-badge">{t('tools:format.enumLabel')}</span>
-        )}
         <span className="jcopy-group">
           <CopyButton
             label={t('tools:format.tree.copyValue')}
+            icon="value"
             getText={() => copyNodeValue(value)}
           />
-          <CopyButton label={t('tools:format.tree.copyPath')} getText={() => path} />
+          <CopyButton
+            label={t('tools:format.tree.copyPath')}
+            icon="path"
+            getText={() => path}
+          />
         </span>
       </div>
 
@@ -152,7 +135,6 @@ const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mo
               path={child.path}
               value={child.value}
               depth={depth + 1}
-              enumKeys={isArray ? childEnumKeys : undefined}
               mode={mode}
               initialForce={initialForce}
             />
@@ -166,31 +148,6 @@ const JsonNode = memo(function JsonNode({ name, path, value, depth, enumKeys, mo
             </button>
           )}
         </div>
-      )}
-
-      {isContainer && open && isEnum && enumDistinct && (
-        <div className="jchildren">
-          <div className="jenum-chips">
-            {enumDistinct.values.slice(0, DISTINCT_DISPLAY_LIMIT).map((dv) => (
-              <span className="jchip" key={dv.display}>
-                <span className="jchip-value">{dv.display}</span>
-                <span className="jchip-count">×{dv.count}</span>
-              </span>
-            ))}
-            {enumDistinct.values.length > DISTINCT_DISPLAY_LIMIT && (
-              <span className="jmore-note">
-                {t('tools:format.tree.more', { count: enumDistinct.values.length - DISTINCT_DISPLAY_LIMIT })}
-              </span>
-            )}
-            {enumDistinct.truncated && (
-              <span className="jmore-note">{t('tools:format.truncatedNote', { count: MAX_DISTINCT_TRACKED })}</span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {isContainer && type === 'array' && enumDistinct?.truncated && !open && (
-        <span className="jmore-note-inline">{t('tools:format.truncatedNote', { count: MAX_DISTINCT_TRACKED })}</span>
       )}
     </div>
   )
@@ -211,6 +168,12 @@ export default function JsonTree({ data, mode = 'data' }: { data: JsonValue; mod
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => trigger(false)}>
           {t('tools:format.tree.collapseAll')}
         </button>
+        <CopyButton
+          className="jtree-copy"
+          label={t('tools:format.tree.copyAll')}
+          icon="value"
+          getText={() => JSON.stringify(data, null, 2)}
+        />
       </div>
       <JsonNode
         key={sig.key}
@@ -225,7 +188,17 @@ export default function JsonTree({ data, mode = 'data' }: { data: JsonValue; mod
   )
 }
 
-function CopyButton({ getText, label }: { getText: () => string; label: string }) {
+function CopyButton({
+  getText,
+  label,
+  icon,
+  className = '',
+}: {
+  getText: () => string
+  label: string
+  icon: 'value' | 'path'
+  className?: string
+}) {
   const [copied, setCopied] = useState(false)
   const handleCopy = async () => {
     try {
@@ -237,8 +210,14 @@ function CopyButton({ getText, label }: { getText: () => string; label: string }
     }
   }
   return (
-    <button type="button" className={`jcopy${copied ? ' is-copied' : ''}`} onClick={handleCopy} aria-label={label} title={label}>
-      {copied ? <CheckIcon /> : <CopyIcon />}
+    <button
+      type="button"
+      className={`jcopy ${className}`}
+      onClick={handleCopy}
+      aria-label={label}
+      title={label}
+    >
+      {copied ? <CheckIcon /> : icon === 'path' ? <PathIcon /> : <CopyIcon />}
     </button>
   )
 }
@@ -256,6 +235,15 @@ function CopyIcon() {
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="9" y="9" width="12" height="12" rx="2" />
       <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+    </svg>
+  )
+}
+
+function PathIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
   )
 }

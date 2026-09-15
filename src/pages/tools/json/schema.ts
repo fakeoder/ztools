@@ -1,12 +1,4 @@
-import {
-  analyzeFields,
-  analyzeValues,
-  getType,
-  isArrayOfObjects,
-  isPrimitive,
-  FIELD_ENUM_ROW_LIMIT,
-  type JsonValue,
-} from './analyze'
+import { analyzeValues, getType, isPrimitive, type JsonValue } from './analyze'
 
 export type JsonSchema = Record<string, unknown>
 
@@ -46,14 +38,8 @@ function arraySchema(arr: JsonValue[]): JsonSchema {
     return base
   }
 
-  const analysis = analyzeValues(arr)
-
-  if (analysis.distinct?.isEnum) {
-    base.items = { enum: analysis.distinct.values.map((v) => v.raw) }
-    return base
-  }
-
-  if (analysis.typeCounts.length === 1 && isPrimitive(arr[0])) {
+  const typeCounts = analyzeValues(arr)
+  if (typeCounts.length === 1 && isPrimitive(arr[0])) {
     const type = getType(arr[0])
     if (type !== 'array' && type !== 'object') {
       base.items = { type }
@@ -65,21 +51,7 @@ function arraySchema(arr: JsonValue[]): JsonSchema {
   for (const item of arr) {
     merged = merged ? mergeSchemas([merged, toSchema(item)]) : toSchema(item)
   }
-  const items = merged ?? {}
-  base.items = items
-
-  if (arr.length <= FIELD_ENUM_ROW_LIMIT && isArrayOfObjects(arr)) {
-    const fields = analyzeFields(arr)
-    const props = (items.properties as Record<string, JsonSchema> | undefined)
-    if (props) {
-      for (const field of fields) {
-        if (field.distinct?.isEnum) {
-          props[field.key] = { enum: field.distinct.values.map((v) => v.raw) }
-        }
-      }
-    }
-  }
-
+  base.items = merged ?? {}
   return base
 }
 
@@ -87,8 +59,6 @@ function mergeSchemas(schemas: JsonSchema[]): JsonSchema {
   if (schemas.length === 1) return schemas[0]
 
   const types = new Set<string>()
-  const enumValues: JsonValue[] = []
-  let allHaveEnum = true
   const objects: JsonSchema[] = []
   const arrays: JsonSchema[] = []
 
@@ -100,26 +70,13 @@ function mergeSchemas(schemas: JsonSchema[]): JsonSchema {
       types.add(type)
     }
 
-    if (Array.isArray(schema.enum)) {
-      for (const v of schema.enum) {
-        if (!enumValues.includes(v)) enumValues.push(v)
-      }
-    } else {
-      allHaveEnum = false
-    }
-
     const typeSet = Array.isArray(type) ? new Set(type) : type ? new Set([type]) : new Set<string>()
     if (typeSet.has('object') && schema.properties) objects.push(schema)
     if (typeSet.has('array') && schema.items) arrays.push(schema)
   }
 
-  if (allHaveEnum && enumValues.length > 0) {
-    return { enum: enumValues }
-  }
-
   const typesArr = Array.from(types)
   if (typesArr.length === 0 && objects.length === 0 && arrays.length === 0) {
-    if (enumValues.length > 0) return { enum: enumValues }
     return {}
   }
   const result: JsonSchema = typesArr.length === 1 ? { type: typesArr[0] } : { type: typesArr }

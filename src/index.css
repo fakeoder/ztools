@@ -698,7 +698,13 @@ body {
 /* JSON output */
 
 .json-output {
-  margin-top: 2rem;
+  max-width: 760px;
+  margin: 2rem auto 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .json-tabs {
@@ -706,6 +712,8 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .json-tabs-btns {
@@ -738,18 +746,38 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.jtoolbar-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elev);
+  color: var(--text-muted);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.jtoolbar-copy:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
 .json-view {
-  margin-top: 1.25rem;
+  padding: 0.5rem 1rem 1rem;
 }
 
 .json-pre {
   max-height: 520px;
   overflow: auto;
   margin: 0;
-  padding: 1.1rem 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-elev);
+  padding: 0.75rem 0.25rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   font-size: 0.85rem;
@@ -779,8 +807,23 @@ body {
 
 .jtree-actions {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
+}
+
+.jtree-actions .jcopy.jtree-copy {
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elev);
+}
+
+.jtree-actions .jcopy.jtree-copy:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
 }
 
 .jrow {
@@ -1028,20 +1071,6 @@ body {
   font-size: 0.75rem;
 }
 
-.jenum-badge {
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: rgba(5, 150, 105, 0.15);
-  color: #059669;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-:root[data-theme='dark'] .jenum-badge {
-  color: #34d399;
-}
-
 .jmore {
   margin-left: 1.5rem;
   padding: 3px 0;
@@ -1055,227 +1084,6 @@ body {
 
 .jmore:hover {
   text-decoration: underline;
-}
-
-.jmore-note {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-}
-
-.jmore-note-inline {
-  margin-left: 0.4rem;
-  color: var(--text-muted);
-  font-size: 0.75rem;
-}
-
-.jenum-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.4rem 0;
-}
-
-.jchip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 2px 9px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--bg-elev);
-  font-size: 0.78rem;
-}
-
-.jchip-value {
-  color: var(--text);
-}
-
-.jchip-count {
-  color: var(--text-muted);
-  font-size: 0.72rem;
-}
-
-/* Stats */
-
-.jstats {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.jstats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-}
-
-.jstat-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-elev);
-}
-
-.jstat-value {
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.jstat-label {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-}
-
-.jstats-block h4 {
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-}
-
-.jtype-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.jdistinct {
-  margin-top: 0.75rem;
-}
-
-.jdistinct-head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.jdistinct-num {
-  font-weight: 700;
-}
-
-.jdistinct-num.is-enum {
-  color: #059669;
-}
-
-:root[data-theme='dark'] .jdistinct-num.is-enum {
-  color: #34d399;
-}
-
-.jtable-wrap {
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.jtable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.jtable th,
-.jtable td {
-  padding: 0.6rem 0.9rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-
-.jtable thead th {
-  background: var(--bg-soft);
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.jtable tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.jtable-key {
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.jblock-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.jblock-head h4 {
-  margin-bottom: 0;
-}
-
-.jblock-meta {
-  color: var(--text-muted);
-  font-size: 0.82rem;
-}
-
-.jnote {
-  margin-top: 0.6rem;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.jdistinct-cell {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  white-space: nowrap;
-}
-
-.jpath-table-wrap {
-  max-height: 420px;
-  overflow: auto;
-}
-
-.jpath-table th,
-.jpath-table td {
-  white-space: nowrap;
-}
-
-.jpath-copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--accent);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
-  font-size: 0.85rem;
-  max-width: 100%;
-}
-
-.jpath-copy:hover {
-  text-decoration: underline;
-}
-
-.jpath-copy svg {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.jpath {
-  display: inline-block;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.jnum {
-  text-align: right;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Pricing ---------- */
@@ -1593,10 +1401,6 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .jstats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   .footer-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1610,10 +1414,6 @@ body {
   .feature-grid,
   .tools-grid,
   .contact-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .jstats-grid {
     grid-template-columns: 1fr;
   }
 

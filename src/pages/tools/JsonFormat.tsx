@@ -2,16 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import JsonTree from './json/JsonTree'
 import { generateSchema } from './json/schema'
-import {
-  analyzeRoot,
-  DISTINCT_DISPLAY_LIMIT,
-  MAX_DISTINCT_TRACKED,
-  MAX_PATH_DEPTH,
-  type DistinctResult,
-  type JsonValue,
-  type PathAnalysis,
-  type RootStats,
-} from './json/analyze'
+import type { JsonValue } from './json/analyze'
 import { formatSize, MAX_INPUT_SIZE, parseJson } from './json/util'
 
 const SAMPLE = `{
@@ -24,9 +15,9 @@ const SAMPLE = `{
   "meta": { "version": "1.0.0", "count": 3 }
 }`
 
-type ViewMode = 'tree' | 'compact' | 'schema' | 'stats'
+type ViewMode = 'tree' | 'compact' | 'schema'
 
-const VIEW_MODES: ViewMode[] = ['tree', 'compact', 'schema', 'stats']
+const VIEW_MODES: ViewMode[] = ['tree', 'compact', 'schema']
 
 export default function JsonFormat() {
   const { t } = useTranslation()
@@ -37,19 +28,15 @@ export default function JsonFormat() {
   const [copied, setCopied] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const rootStats = useMemo(() => (data !== null ? analyzeRoot(data) : null), [data])
   const schema = useMemo(
     () => (data !== null && view === 'schema' ? generateSchema(data) : null),
     [data, view],
   )
 
   const textOutput = useMemo(() => {
-    if (data === null) return ''
-    if (view === 'tree') return JSON.stringify(data, null, 2)
-    if (view === 'compact') return JSON.stringify(data)
-    if (view === 'schema') return JSON.stringify(schema, null, 2)
-    return ''
-  }, [data, view, schema])
+    if (view !== 'compact' || data === null) return ''
+    return JSON.stringify(data)
+  }, [data, view])
 
   const showError = (message: string) => {
     setData(null)
@@ -104,8 +91,6 @@ export default function JsonFormat() {
       // clipboard unavailable
     }
   }
-
-  const showCopy = view === 'tree' || view === 'compact' || view === 'schema'
 
   return (
     <section className="section tool-page">
@@ -187,9 +172,15 @@ export default function JsonFormat() {
                   </button>
                 ))}
               </div>
-              {showCopy && (
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => copyText(textOutput)}>
-                  {copied ? t('tools:format.copied') : t('tools:format.copy')}
+              {view === 'compact' && (
+                <button
+                  type="button"
+                  className="jtoolbar-copy"
+                  onClick={() => copyText(textOutput)}
+                  aria-label={t('tools:format.copy')}
+                  title={copied ? t('tools:format.copied') : t('tools:format.copy')}
+                >
+                  {copied ? <CheckIcon /> : <CopyIcon />}
                 </button>
               )}
             </div>
@@ -203,7 +194,6 @@ export default function JsonFormat() {
                   <p className="json-note">{t('tools:format.schemaNote')}</p>
                 </>
               )}
-              {view === 'stats' && rootStats !== null && <StatsView stats={rootStats} />}
             </div>
           </div>
         )}
@@ -212,215 +202,9 @@ export default function JsonFormat() {
   )
 }
 
-function StatsView({ stats }: { stats: RootStats }) {
-  const { t } = useTranslation()
-  return (
-    <div className="jstats">
-      <div className="jstats-grid">
-        <StatCard label={t('tools:format.stats.rootType')} value={stats.rootType} />
-        <StatCard label={t('tools:format.stats.totalNodes')} value={String(stats.totalNodes)} />
-        <StatCard label={t('tools:format.stats.maxDepth')} value={String(stats.maxDepth)} />
-        <StatCard label={t('tools:format.stats.objects')} value={String(stats.objectCount)} />
-        <StatCard label={t('tools:format.stats.arrays')} value={String(stats.arrayCount)} />
-        <StatCard label={t('tools:format.stats.primitives')} value={String(stats.primitiveCount)} />
-        <StatCard label={t('tools:format.stats.uniquePaths')} value={String(stats.pathAnalysis.uniqueCount)} />
-        {stats.length !== undefined && (
-          <StatCard label={t('tools:format.stats.length')} value={String(stats.length)} />
-        )}
-        {stats.keyCount !== undefined && (
-          <StatCard label={t('tools:format.stats.keyCount')} value={String(stats.keyCount)} />
-        )}
-      </div>
-
-      {stats.elementAnalysis && (
-        <div className="jstats-block">
-          <h4>{t('tools:format.stats.elementTypes')}</h4>
-          <div className="jtype-row">
-            {stats.elementAnalysis.typeCounts.map((tc) => (
-              <span className="jelem" key={tc.type}>
-                <span className={`jtype is-${tc.type}`}>{tc.type}</span>
-                <span className="jtimes">×{tc.count}</span>
-              </span>
-            ))}
-          </div>
-          {stats.elementAnalysis.distinct && <DistinctBlock distinct={stats.elementAnalysis.distinct} />}
-        </div>
-      )}
-
-      {stats.fieldStats && (
-        <div className="jstats-block">
-          <h4>{t('tools:format.stats.fields')}</h4>
-          <div className="jtable-wrap">
-            <table className="jtable">
-              <thead>
-                <tr>
-                  <th>{t('tools:format.stats.field')}</th>
-                  <th>{t('tools:format.stats.types')}</th>
-                  <th>{t('tools:format.stats.present')}</th>
-                  <th>{t('tools:format.stats.distinct')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stats.fieldStats.map((field) => (
-                  <tr key={field.key}>
-                    <td className="jtable-key">{field.key}</td>
-                    <td>
-                      <div className="jtype-row">
-                        {field.typeCounts.map((tc) => (
-                          <span className="jelem" key={tc.type}>
-                            <span className={`jtype is-${tc.type}`}>{tc.type}</span>
-                            <span className="jtimes">×{tc.count}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      {field.present}/{stats.length ?? 1}
-                    </td>
-                    <td>{field.distinct ? <DistinctCell distinct={field.distinct} /> : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      <PathsView analysis={stats.pathAnalysis} />
-    </div>
-  )
-}
-
-function PathsView({ analysis }: { analysis: PathAnalysis }) {
-  const { t } = useTranslation()
-  const [copiedPath, setCopiedPath] = useState<string | null>(null)
-
-  const copyPath = async (path: string) => {
-    try {
-      await navigator.clipboard.writeText(path)
-      setCopiedPath(path)
-      setTimeout(() => setCopiedPath(null), 1200)
-    } catch {
-      // clipboard unavailable
-    }
-  }
-
-  return (
-    <div className="jstats-block">
-      <div className="jblock-head">
-        <h4>{t('tools:format.stats.paths')}</h4>
-        <span className="jblock-meta">
-          {t('tools:format.stats.uniquePaths')} {analysis.uniqueCount}
-        </span>
-      </div>
-      {analysis.paths.length === 0 ? (
-        <p className="jnote">{t('tools:format.stats.noPaths')}</p>
-      ) : (
-        <div className="jtable-wrap jpath-table-wrap">
-          <table className="jtable jpath-table">
-            <thead>
-              <tr>
-                <th>{t('tools:format.stats.path')}</th>
-                <th>{t('tools:format.stats.depth')}</th>
-                <th>{t('tools:format.stats.types')}</th>
-                <th>{t('tools:format.stats.occurrences')}</th>
-                <th>{t('tools:format.stats.distinct')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analysis.paths.map((p) => (
-                <tr key={p.path}>
-                  <td>
-                    <button type="button" className="jpath-copy" onClick={() => copyPath(p.path)} title={t('tools:format.copyPath')}>
-                      <span className="jpath">{p.path}</span>
-                      {copiedPath === p.path ? <CheckIcon /> : <CopyIcon />}
-                    </button>
-                  </td>
-                  <td className="jnum">{p.depth}</td>
-                  <td>
-                    <div className="jtype-row">
-                      {p.typeCounts.map((tc) => (
-                        <span className="jelem" key={tc.type}>
-                          <span className={`jtype is-${tc.type}`}>{tc.type}</span>
-                          <span className="jtimes">×{tc.count}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="jnum">{p.occurrences}</td>
-                  <td>{p.distinct ? <DistinctCell distinct={p.distinct} /> : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <p className="jnote">
-        {t('tools:format.stats.pathsNote', { depth: MAX_PATH_DEPTH })}
-        {analysis.truncated && ' ' + t('tools:format.stats.pathsTruncated', { depth: MAX_PATH_DEPTH })}
-      </p>
-    </div>
-  )
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="jstat-card">
-      <span className="jstat-value">{value}</span>
-      <span className="jstat-label">{label}</span>
-    </div>
-  )
-}
-
-function DistinctBlock({ distinct }: { distinct: DistinctResult }) {
-  const { t } = useTranslation()
-  return (
-    <div className="jdistinct">
-      <div className="jdistinct-head">
-        <span className={distinct.isEnum ? 'jdistinct-num is-enum' : 'jdistinct-num'}>
-          {distinct.totalDistinct}
-          {distinct.truncated ? '+' : ''}
-        </span>
-        {distinct.isEnum && <span className="jenum-badge">{t('tools:format.enumLabel')}</span>}
-      </div>
-      {distinct.values.length > 0 && (
-        <div className="jenum-chips">
-          {distinct.values.slice(0, DISTINCT_DISPLAY_LIMIT).map((dv) => (
-            <span className="jchip" key={dv.display}>
-              <span className="jchip-value">{dv.display}</span>
-              <span className="jchip-count">×{dv.count}</span>
-            </span>
-          ))}
-          {distinct.values.length > DISTINCT_DISPLAY_LIMIT && (
-            <span className="jmore-note">
-              {t('tools:format.tree.more', { count: distinct.values.length - DISTINCT_DISPLAY_LIMIT })}
-            </span>
-          )}
-          {distinct.truncated && (
-            <span className="jmore-note">{t('tools:format.truncatedNote', { count: MAX_DISTINCT_TRACKED })}</span>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function DistinctCell({ distinct }: { distinct: DistinctResult }) {
-  const { t } = useTranslation()
-  return (
-    <span className="jdistinct-cell">
-      <span className={distinct.isEnum ? 'jdistinct-num is-enum' : 'jdistinct-num'}>
-        {distinct.totalDistinct}
-        {distinct.truncated ? '+' : ''}
-      </span>
-      {distinct.isEnum && <span className="jenum-badge">{t('tools:format.enumLabel')}</span>}
-    </span>
-  )
-}
-
 function CopyIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="9" y="9" width="12" height="12" rx="2" />
       <path d="M5 15V5a2 2 0 0 1 2-2h10" />
     </svg>
@@ -429,7 +213,7 @@ function CopyIcon() {
 
 function CheckIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M20 6 9 17l-5-5" />
     </svg>
   )
