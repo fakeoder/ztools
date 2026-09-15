@@ -223,7 +223,7 @@ const zh = {
     json_format: {
       name: 'JSON 格式化',
       desc: '一键格式化、校验与压缩 JSON。',
-      tag: 'data',
+      tags: ['data', 'json', 'format'],
     },
     timestamp: {
       name: '时间戳转换',
@@ -232,6 +232,8 @@ const zh = {
     },
     tags: {
       data: '数据',
+      json: 'JSON',
+      format: '格式化',
       time: '时间',
     },
     search: {

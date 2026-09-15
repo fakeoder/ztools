@@ -230,7 +230,7 @@ const en = {
     json_format: {
       name: 'JSON Formatter',
       desc: 'Pretty-print, validate, and minify JSON in an instant.',
-      tag: 'data',
+      tags: ['data', 'json', 'format'],
     },
     timestamp: {
       name: 'Timestamp Converter',
@@ -239,6 +239,8 @@ const en = {
     },
     tags: {
       data: 'Data',
+      json: 'JSON',
+      format: 'Format',
       time: 'Time',
     },
     search: {

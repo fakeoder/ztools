@@ -28,6 +28,8 @@ export default function JsonFormat() {
   const [copied, setCopied] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  const toolTags = useMemo(() => t('tools:json_format.tags', { returnObjects: true }) as string[], [t])
+
   const schema = useMemo(
     () => (data !== null && view === 'schema' ? generateSchema(data) : null),
     [data, view],
@@ -96,7 +98,11 @@ export default function JsonFormat() {
     <section className="section tool-page">
       <div className="container">
         <div className="tool-page-head">
-          <span className="badge">{t(`tools:tags.${t('tools:json_format.tag')}`)}</span>
+          <div className="tool-page-badges">
+            {toolTags.map((tag) => (
+              <span className="badge" key={tag}>{t(`tools:tags.${tag}`)}</span>
+            ))}
+          </div>
           <h1>{t('tools:json_format.name')}</h1>
           <p>{t('tools:json_format.desc')}</p>
         </div>

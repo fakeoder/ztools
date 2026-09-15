@@ -565,6 +565,13 @@ body {
   font-weight: 600;
 }
 
+.tool-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+
 .tool-card h3 {
   font-size: 1.1rem;
 }
@@ -598,6 +605,13 @@ body {
 .tool-page-head {
   margin-bottom: 2.5rem;
   text-align: center;
+}
+
+.tool-page-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .tool-page-head h1 {
