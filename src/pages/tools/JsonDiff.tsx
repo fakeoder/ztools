@@ -45,6 +45,7 @@ type ViewRow = (DiffRow & ViewRowBase) | ExpanderRow
 interface UnifiedRow {
   kind: 'sign' | 'expander'
   sign: string
+  cls: string
   text: string | null
   ln: number | null
   rn: number | null
@@ -84,30 +85,30 @@ function toUnified(collapsed: ViewRow[]): UnifiedRow[] {
   const out: UnifiedRow[] = []
   for (const vr of collapsed) {
     if (vr.kind === 'expander') {
-      out.push({ kind: 'expander', sign: '', text: null, ln: null, rn: null, fullIndex: vr.fullIndex, cp: null, note: null, hidden: vr.hidden, id: vr.id })
+      out.push({ kind: 'expander', sign: '', cls: '', text: null, ln: null, rn: null, fullIndex: vr.fullIndex, cp: null, note: null, hidden: vr.hidden, id: vr.id })
       continue
     }
     const r = vr as DiffRow
     switch (r.kind) {
       case 'added':
-        out.push({ kind: 'sign', sign: '+', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: r.note })
+        out.push({ kind: 'sign', sign: '-', cls: 'd-del', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: r.note })
         break
       case 'removed':
-        out.push({ kind: 'sign', sign: '-', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: r.note })
+        out.push({ kind: 'sign', sign: '+', cls: 'd-add', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: r.note })
         break
       case 'modified':
-        out.push({ kind: 'sign', sign: '-', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: null })
-        out.push({ kind: 'sign', sign: '+', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: null })
+        out.push({ kind: 'sign', sign: '~', cls: 'd-mod', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: null })
+        out.push({ kind: 'sign', sign: '~', cls: 'd-mod', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: null })
         break
       case 'moved':
-        if (r.l !== null) out.push({ kind: 'sign', sign: '-', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: r.note })
-        if (r.r !== null) out.push({ kind: 'sign', sign: '+', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: r.note })
+        if (r.l !== null) out.push({ kind: 'sign', sign: '~', cls: 'd-move', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: r.note })
+        if (r.r !== null) out.push({ kind: 'sign', sign: '~', cls: 'd-move', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: r.note })
         break
       case 'ignored':
-        out.push({ kind: 'sign', sign: ' ', text: r.l ?? r.r, ln: r.ln, rn: r.rn, fullIndex: vr.fullIndex, cp: null, note: null })
+        out.push({ kind: 'sign', sign: ' ', cls: 'd-ign', text: r.l ?? r.r, ln: r.ln, rn: r.rn, fullIndex: vr.fullIndex, cp: null, note: null })
         break
       default:
-        out.push({ kind: 'sign', sign: ' ', text: r.l, ln: r.ln, rn: r.rn, fullIndex: vr.fullIndex, cp: null, note: null })
+        out.push({ kind: 'sign', sign: ' ', cls: 'd-ctx', text: r.l, ln: r.ln, rn: r.rn, fullIndex: vr.fullIndex, cp: null, note: null })
     }
   }
   return out
@@ -492,8 +493,8 @@ export default function JsonDiff() {
           <div className="diff-output">
             <div className="diff-toolbar">
               <div className="diff-stats">
-                <span className="d-stat d-stat-add">+{result.stats.added}</span>
-                <span className="d-stat d-stat-del">-{result.stats.removed}</span>
+                <span className="d-stat d-stat-add">+{result.stats.removed}</span>
+                <span className="d-stat d-stat-del">-{result.stats.added}</span>
                 <span className="d-stat d-stat-mod">~{result.stats.modified}</span>
                 <span className="d-stat d-stat-move">⇄{result.stats.moved}</span>
                 {result.ignoredCount > 0 && <span className="d-stat d-stat-ign">{t('tools:diff.ignored', { count: result.ignoredCount })}</span>}
@@ -548,7 +549,7 @@ export default function JsonDiff() {
                       className={`diff-list-item ${activeIndex === c.rowIndex ? 'is-active' : ''}`}
                       onClick={() => jumpTo(c.rowIndex)}
                     >
-                      <span className={`d-badge d-badge-${c.kind}`}>{kindIcon(c.kind)}</span>
+                      <span className={`d-badge ${badgeClass(c.kind)}`}>{kindSign(c.kind)}</span>
                       <span className="d-path">{c.path || '/'}</span>
                     </button>
                   ))}
@@ -604,12 +605,12 @@ export default function JsonDiff() {
   }
 }
 
-function kindIcon(kind: string): string {
+function kindSign(kind: string): string {
   switch (kind) {
     case 'added':
-      return '+'
-    case 'removed':
       return '-'
+    case 'removed':
+      return '+'
     case 'modified':
       return '~'
     case 'moved':
@@ -619,20 +620,50 @@ function kindIcon(kind: string): string {
   }
 }
 
+function badgeClass(kind: string): string {
+  switch (kind) {
+    case 'added':
+      return 'd-badge-added'
+    case 'removed':
+      return 'd-badge-removed'
+    case 'modified':
+      return 'd-badge-modified'
+    case 'moved':
+      return 'd-badge-moved'
+    default:
+      return ''
+  }
+}
+
 function cellClass(kind: RowKind, side: 'l' | 'r'): string {
   switch (kind) {
     case 'added':
-      return side === 'r' ? 'd-add' : 'd-ctx'
+      return side === 'r' ? 'd-del' : 'd-ctx'
     case 'removed':
-      return side === 'l' ? 'd-del' : 'd-ctx'
+      return side === 'l' ? 'd-add' : 'd-ctx'
     case 'modified':
-      return side === 'l' ? 'd-del' : 'd-add'
+      return 'd-mod'
     case 'moved':
       return 'd-move'
     case 'ignored':
       return 'd-ign'
     default:
       return 'd-ctx'
+  }
+}
+
+function cellSign(kind: RowKind, side: 'l' | 'r'): string {
+  switch (kind) {
+    case 'removed':
+      return side === 'l' ? '+' : ''
+    case 'added':
+      return side === 'r' ? '-' : ''
+    case 'modified':
+      return '~'
+    case 'moved':
+      return '\u21c4'
+    default:
+      return ''
   }
 }
 
@@ -663,10 +694,13 @@ function SplitRow({
   const r = row as DiffRow
   const fullIndex = row.fullIndex
   const isActive = active !== null && r.p !== null && fullIndex === active
+  const lSign = cellSign(r.kind, 'l')
+  const rSign = cellSign(r.kind, 'r')
   return (
     <div className={`d-row d-row-split ${isActive ? 'd-row-active' : ''}`} style={{ top, height: ROW_H }}>
       <div className={`d-cell ${cellClass(r.kind, 'l')}`}>
         <span className="d-ln">{r.ln ?? ''}</span>
+        {lSign && <span className="d-cell-sign">{lSign}</span>}
         {r.l !== null ? (
           <>
             <span className="d-code"><LineContent text={r.l} cp={r.cpL} /></span>
@@ -678,6 +712,7 @@ function SplitRow({
       </div>
       <div className={`d-cell ${cellClass(r.kind, 'r')}`}>
         <span className="d-ln">{r.rn ?? ''}</span>
+        {rSign && <span className="d-cell-sign">{rSign}</span>}
         {r.r !== null && (
           <>
             <span className="d-code"><LineContent text={r.r} cp={r.cpR} /></span>
@@ -699,7 +734,7 @@ function UnifiedRowItem({ row, top, active, onExpand }: { row: UnifiedRow; top: 
       </div>
     )
   }
-  const cls = row.sign === '+' ? 'd-add' : row.sign === '-' ? 'd-del' : 'd-ctx'
+  const cls = row.cls || 'd-ctx'
   const isActive = active !== null && row.fullIndex !== null && row.fullIndex === active
   return (
     <div className={`d-row d-row-unified ${cls} ${isActive ? 'd-row-active' : ''}`} style={{ top, height: ROW_H }}>

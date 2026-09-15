@@ -306,7 +306,7 @@ const zh = {
       shareCopied: '分享链接已复制到剪贴板。',
       changesLabel: '变更列表',
       noChanges: '没有差异。',
-      baselineHint: 'Test（左）为基准。绿色 + 仅 Reference 存在；红色 − 仅 Test 存在；Test 缺失的条目标记为“less”。',
+      baselineHint: 'Test（左）为基准。+ 仅 Test 存在（Test 更多）；− 仅 Reference 存在（Test 更少）；~ 值发生变化。Test 缺失的条目标记为“less”。',
       lessPlaceholder: 'less',
     },
     placeholder: {

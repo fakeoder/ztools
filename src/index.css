@@ -1339,6 +1339,15 @@ body {
   user-select: none;
 }
 
+.d-cell-sign {
+  color: var(--text-muted);
+  font-weight: 700;
+  width: 1.2em;
+  text-align: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
 .diff-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -1412,13 +1421,13 @@ body {
 }
 
 .d-badge-added {
-  background: rgba(26, 127, 55, 0.14);
-  color: #1a7f37;
+  background: rgba(207, 34, 46, 0.14);
+  color: #cf222e;
 }
 
 .d-badge-removed {
-  background: rgba(207, 34, 46, 0.14);
-  color: #cf222e;
+  background: rgba(26, 127, 55, 0.14);
+  color: #1a7f37;
 }
 
 .d-badge-modified {
@@ -1432,11 +1441,11 @@ body {
 }
 
 :root[data-theme='dark'] .d-badge-added {
-  color: #56d364;
+  color: #ff7b72;
 }
 
 :root[data-theme='dark'] .d-badge-removed {
-  color: #ff7b72;
+  color: #56d364;
 }
 
 :root[data-theme='dark'] .d-badge-modified {

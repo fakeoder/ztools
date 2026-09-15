@@ -314,7 +314,7 @@ const en = {
       changesLabel: 'Changes',
       noChanges: 'No differences.',
       baselineHint:
-        'Test (left) is the baseline. Green + exists only in Reference; red − exists only in Test; entries missing from Test are marked “less”.',
+        'Test (left) is the baseline. + exists only in Test (Test has more); − exists only in Reference (Test has less); ~ value changed. Entries missing from Test are marked “less”.',
       lessPlaceholder: 'less',
     },
     placeholder: {
