@@ -113,16 +113,16 @@ function toUnified(collapsed: ViewRow[]): UnifiedRow[] {
   return out
 }
 
-function columnWidths(rows: ViewRow[]): { left: number; right: number } {
-  let left = 0
-  let right = 0
+function columnWidths(rows: ViewRow[]): number {
+  let max = 0
   for (const vr of rows) {
     if (vr.kind === 'expander') continue
     const r = vr as DiffRow
-    if (r.l !== null) left = Math.max(left, r.l.length + (r.note ? r.note.length + 2 : 0))
-    if (r.r !== null) right = Math.max(right, r.r.length + (r.note ? r.note.length + 2 : 0))
+    const note = r.note ? r.note.length + 2 : 0
+    if (r.l !== null) max = Math.max(max, r.l.length + note)
+    if (r.r !== null) max = Math.max(max, r.r.length + note)
   }
-  return { left, right }
+  return max
 }
 
 function parseOptions(ignoreText: string, identityText: string, textDiff: boolean, contextLines: number): DiffOptions {
@@ -551,8 +551,7 @@ export default function JsonDiff() {
                       position: 'relative',
                       width: 'max-content',
                       minWidth: '100%',
-                      '--d-left': `${cols.left + 7}ch`,
-                      '--d-right': `${cols.right + 7}ch`,
+                      '--d-col': `${cols + 7}ch`,
                     } as CSSProperties}
                   >
                     {virtualizer.getVirtualItems().map((item) => {

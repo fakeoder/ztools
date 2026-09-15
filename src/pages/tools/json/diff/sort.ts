@@ -64,10 +64,10 @@ export function serializeLines(
   const pad = ' '.repeat(indent * 2)
   const prefix = key !== null ? `${JSON.stringify(key)}: ` : ''
   if (value === null || typeof value === 'number' || typeof value === 'boolean') {
-    return [{ text: prefix + String(value), path }]
+    return [{ text: `${pad}${prefix}${String(value)}`, path }]
   }
   if (typeof value === 'string') {
-    return [{ text: prefix + scalarText(value), path }]
+    return [{ text: `${pad}${prefix}${scalarText(value)}`, path }]
   }
   if (Array.isArray(value)) {
     const lines: SLine[] = [{ text: `${pad}${prefix}[`, path }]

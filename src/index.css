@@ -1466,18 +1466,11 @@ body {
 
 .d-row-split .d-cell {
   flex: 0 0 auto;
+  width: var(--d-col, 50%);
   display: flex;
   align-items: center;
   white-space: pre;
   box-sizing: border-box;
-}
-
-.d-row-split .d-cell:first-child {
-  width: var(--d-left, 50%);
-}
-
-.d-row-split .d-cell:last-child {
-  width: var(--d-right, 50%);
 }
 
 .d-row-split .d-cell + .d-cell {
