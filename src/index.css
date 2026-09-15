@@ -1325,6 +1325,20 @@ body {
   font-size: 0.85rem;
 }
 
+.diff-baseline-hint {
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.d-less {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.78rem;
+  padding-left: 0.4em;
+  user-select: none;
+}
+
 .diff-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -1456,8 +1470,7 @@ body {
 .d-row {
   position: absolute;
   left: 0;
-  width: max-content;
-  min-width: 100%;
+  width: max(100%, calc(2 * var(--d-col, 40ch)));
   display: flex;
   align-items: center;
   padding: 0 8px;
@@ -1465,8 +1478,7 @@ body {
 }
 
 .d-row-split .d-cell {
-  flex: 0 0 auto;
-  width: var(--d-col, 50%);
+  flex: 0 0 50%;
   display: flex;
   align-items: center;
   white-space: pre;
@@ -1479,6 +1491,7 @@ body {
 }
 
 .d-row-unified {
+  width: max(100%, var(--d-col, 40ch));
   white-space: pre;
 }
 

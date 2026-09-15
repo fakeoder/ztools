@@ -265,6 +265,16 @@ export default function JsonDiff() {
 
   const cols = useMemo(() => columnWidths(collapsedRows), [collapsedRows])
 
+  const lessRows = useMemo(() => {
+    const set = new Set<number>()
+    if (result) {
+      for (const c of result.changes) {
+        if (c.kind === 'added') set.add(c.rowIndex)
+      }
+    }
+    return set
+  }, [result])
+
   const viewRows = view === 'split' ? collapsedRows : unifiedRows
   const viewRowCount = viewRows.length
 
@@ -524,6 +534,7 @@ export default function JsonDiff() {
               </div>
             </div>
             {shareMsg && <div className="diff-share-msg">{shareMsg}</div>}
+            <p className="diff-baseline-hint">{t('tools:diff.baselineHint')}</p>
 
             <div className="diff-layout">
               <aside className="diff-list" aria-label={t('tools:diff.changesLabel')}>
@@ -557,7 +568,17 @@ export default function JsonDiff() {
                     {virtualizer.getVirtualItems().map((item) => {
                       const row = viewRows[item.index]
                       if (view === 'split') {
-                        return <SplitRow key={item.key} row={row as ViewRow} top={item.start} active={activeIndex} onExpand={() => expandRun(row)} />
+                        return (
+                          <SplitRow
+                            key={item.key}
+                            row={row as ViewRow}
+                            top={item.start}
+                            active={activeIndex}
+                            onExpand={() => expandRun(row)}
+                            showLess={row.fullIndex !== null && lessRows.has(row.fullIndex)}
+                            lessLabel={t('tools:diff.lessPlaceholder')}
+                          />
+                        )
                       }
                       return <UnifiedRowItem key={item.key} row={row as UnifiedRow} top={item.start} active={activeIndex} onExpand={() => expandRun(row)} />
                     })}
@@ -598,14 +619,14 @@ function kindIcon(kind: string): string {
   }
 }
 
-function kindClass(kind: RowKind): string {
+function cellClass(kind: RowKind, side: 'l' | 'r'): string {
   switch (kind) {
     case 'added':
-      return 'd-add'
+      return side === 'r' ? 'd-add' : 'd-ctx'
     case 'removed':
-      return 'd-del'
+      return side === 'l' ? 'd-del' : 'd-ctx'
     case 'modified':
-      return 'd-mod'
+      return side === 'l' ? 'd-del' : 'd-add'
     case 'moved':
       return 'd-move'
     case 'ignored':
@@ -615,7 +636,21 @@ function kindClass(kind: RowKind): string {
   }
 }
 
-function SplitRow({ row, top, active, onExpand }: { row: ViewRow; top: number; active: number | null; onExpand: () => void }) {
+function SplitRow({
+  row,
+  top,
+  active,
+  onExpand,
+  showLess,
+  lessLabel,
+}: {
+  row: ViewRow
+  top: number
+  active: number | null
+  onExpand: () => void
+  showLess: boolean
+  lessLabel: string
+}) {
   if (row.kind === 'expander') {
     return (
       <div className="d-row d-row-expander" style={{ top, height: ROW_H }}>
@@ -629,16 +664,26 @@ function SplitRow({ row, top, active, onExpand }: { row: ViewRow; top: number; a
   const fullIndex = row.fullIndex
   const isActive = active !== null && r.p !== null && fullIndex === active
   return (
-    <div className={`d-row d-row-split ${kindClass(r.kind)} ${isActive ? 'd-row-active' : ''}`} style={{ top, height: ROW_H }}>
-      <div className="d-cell">
+    <div className={`d-row d-row-split ${isActive ? 'd-row-active' : ''}`} style={{ top, height: ROW_H }}>
+      <div className={`d-cell ${cellClass(r.kind, 'l')}`}>
         <span className="d-ln">{r.ln ?? ''}</span>
-        <span className="d-code"><LineContent text={r.l} cp={r.cpL} /></span>
-        {r.note && r.l !== null && <span className="d-note">{r.note}</span>}
+        {r.l !== null ? (
+          <>
+            <span className="d-code"><LineContent text={r.l} cp={r.cpL} /></span>
+            {r.note && <span className="d-note">{r.note}</span>}
+          </>
+        ) : showLess ? (
+          <span className="d-less">{lessLabel}</span>
+        ) : null}
       </div>
-      <div className="d-cell">
+      <div className={`d-cell ${cellClass(r.kind, 'r')}`}>
         <span className="d-ln">{r.rn ?? ''}</span>
-        <span className="d-code"><LineContent text={r.r} cp={r.cpR} /></span>
-        {r.note && r.r !== null && <span className="d-note">{r.note}</span>}
+        {r.r !== null && (
+          <>
+            <span className="d-code"><LineContent text={r.r} cp={r.cpR} /></span>
+            {r.note && <span className="d-note">{r.note}</span>}
+          </>
+        )}
       </div>
     </div>
   )

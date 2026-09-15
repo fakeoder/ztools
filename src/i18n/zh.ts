@@ -276,8 +276,8 @@ const zh = {
       },
     },
     diff: {
-      testLabel: '测试 JSON',
-      refLabel: '参考 JSON',
+      testLabel: '测试（基准）',
+      refLabel: '参考（对比）',
       pastePlaceholder: '在此粘贴 JSON…',
       upload: '上传文件',
       readError: '无法读取文件。',
@@ -306,6 +306,8 @@ const zh = {
       shareCopied: '分享链接已复制到剪贴板。',
       changesLabel: '变更列表',
       noChanges: '没有差异。',
+      baselineHint: 'Test（左）为基准。绿色 + 仅 Reference 存在；红色 − 仅 Test 存在；Test 缺失的条目标记为“less”。',
+      lessPlaceholder: 'less',
     },
     placeholder: {
       title: '{{name}}',

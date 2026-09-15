@@ -283,8 +283,8 @@ const en = {
       },
     },
     diff: {
-      testLabel: 'Test JSON',
-      refLabel: 'Reference JSON',
+      testLabel: 'Test (baseline)',
+      refLabel: 'Reference (compared)',
       pastePlaceholder: 'Paste JSON here…',
       upload: 'Upload file',
       readError: 'Could not read the file.',
@@ -313,6 +313,9 @@ const en = {
       shareCopied: 'Share link copied to clipboard.',
       changesLabel: 'Changes',
       noChanges: 'No differences.',
+      baselineHint:
+        'Test (left) is the baseline. Green + exists only in Reference; red − exists only in Test; entries missing from Test are marked “less”.',
+      lessPlaceholder: 'less',
     },
     placeholder: {
       title: '{{name}}',
