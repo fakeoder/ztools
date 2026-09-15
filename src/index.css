@@ -738,24 +738,6 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-.json-indent {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.json-indent select {
-  padding: 0.3rem 0.5rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-elev);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.85rem;
-}
-
 .json-view {
   margin-top: 1.25rem;
 }
@@ -792,6 +774,13 @@ body {
   padding: 0.6rem 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   font-size: 0.85rem;
+  counter-reset: jline;
+}
+
+.jtree-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .jrow {
@@ -801,6 +790,18 @@ body {
   min-height: 26px;
   padding: 2px 6px;
   border-radius: 6px;
+}
+
+.jrow::before {
+  counter-increment: jline;
+  content: counter(jline);
+  min-width: 1.9em;
+  text-align: right;
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-size: 0.72rem;
+  user-select: none;
+  flex-shrink: 0;
 }
 
 .jrow:hover {
@@ -850,10 +851,103 @@ body {
   color: var(--accent);
   font-weight: 600;
   overflow-wrap: anywhere;
+  flex-shrink: 0;
 }
 
 .jcolon {
   color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.jvalue {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.jvalue.is-string {
+  color: #059669;
+}
+
+:root[data-theme='dark'] .jvalue.is-string {
+  color: #34d399;
+}
+
+.jvalue.is-number {
+  color: #2563eb;
+}
+
+:root[data-theme='dark'] .jvalue.is-number {
+  color: #60a5fa;
+}
+
+.jvalue.is-boolean {
+  color: #b45309;
+}
+
+:root[data-theme='dark'] .jvalue.is-boolean {
+  color: #fbbf24;
+}
+
+.jvalue.is-null {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.jbrace {
+  color: var(--text-muted);
+}
+
+.jnode-type {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.jcopy-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.jrow:hover .jcopy-group,
+.jrow:focus-within .jcopy-group {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .jcopy-group {
+    opacity: 1;
+  }
+}
+
+.jcopy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.jcopy:hover {
+  color: var(--accent);
+  background: var(--bg-elev);
+  border-color: var(--border);
+}
+
+.jcopy.is-copied {
+  color: var(--success);
 }
 
 .jtype {
@@ -1106,6 +1200,82 @@ body {
 .jtable-key {
   font-weight: 600;
   color: var(--accent);
+}
+
+.jblock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.jblock-head h4 {
+  margin-bottom: 0;
+}
+
+.jblock-meta {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.jnote {
+  margin-top: 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.jdistinct-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.jpath-table-wrap {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.jpath-table th,
+.jpath-table td {
+  white-space: nowrap;
+}
+
+.jpath-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.85rem;
+  max-width: 100%;
+}
+
+.jpath-copy:hover {
+  text-decoration: underline;
+}
+
+.jpath-copy svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.jpath {
+  display: inline-block;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jnum {
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Pricing ---------- */

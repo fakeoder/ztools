@@ -6,6 +6,7 @@ export const MAX_DISTINCT_TRACKED = 200
 export const ENUM_MAX_VALUES = 20
 export const DISTINCT_DISPLAY_LIMIT = 50
 export const FIELD_ENUM_ROW_LIMIT = 5000
+export const MAX_PATH_DEPTH = 10
 
 export function getType(value: JsonValue): JType {
   if (value === null) return 'null'
@@ -156,6 +157,21 @@ export function analyzeFields(rows: Array<Record<string, JsonValue>>): FieldStat
   return fields
 }
 
+export interface PathStat {
+  path: string
+  depth: number
+  occurrences: number
+  typeCounts: TypeCount[]
+  distinct: DistinctResult | null
+}
+
+export interface PathAnalysis {
+  paths: PathStat[]
+  uniqueCount: number
+  maxDepthReached: number
+  truncated: boolean
+}
+
 export interface RootStats {
   rootType: JType
   totalNodes: number
@@ -167,6 +183,17 @@ export interface RootStats {
   length?: number
   elementAnalysis?: ValueAnalysis
   fieldStats?: FieldStat[]
+  pathAnalysis: PathAnalysis
+}
+
+interface PathAccumulator {
+  path: string
+  depth: number
+  occurrences: number
+  typeCounts: Map<JType, number>
+  distinct: Map<string, DistinctValue>
+  truncated: boolean
+  allPrimitive: boolean
 }
 
 export function analyzeRoot(data: JsonValue): RootStats {
@@ -175,24 +202,94 @@ export function analyzeRoot(data: JsonValue): RootStats {
   let objectCount = 0
   let arrayCount = 0
   let primitiveCount = 0
+  const pathMap = new Map<string, PathAccumulator>()
 
-  function walk(value: JsonValue, depth: number): void {
+  function record(path: string, depth: number, value: JsonValue): void {
+    let acc = pathMap.get(path)
+    if (!acc) {
+      acc = {
+        path,
+        depth,
+        occurrences: 0,
+        typeCounts: new Map(),
+        distinct: new Map(),
+        truncated: false,
+        allPrimitive: true,
+      }
+      pathMap.set(path, acc)
+    }
+    acc.occurrences += 1
+    const type = getType(value)
+    acc.typeCounts.set(type, (acc.typeCounts.get(type) ?? 0) + 1)
+
+    if (!isPrimitive(value)) {
+      acc.allPrimitive = false
+      return
+    }
+    const display = displayValue(value)
+    const existing = acc.distinct.get(display)
+    if (existing) {
+      existing.count += 1
+    } else if (acc.distinct.size < MAX_DISTINCT_TRACKED) {
+      acc.distinct.set(display, { display, raw: value, count: 1 })
+    } else {
+      acc.truncated = true
+    }
+  }
+
+  function walk(value: JsonValue, depth: number, path: string): void {
     totalNodes += 1
     maxDepth = Math.max(maxDepth, depth)
+    if (depth <= MAX_PATH_DEPTH) record(path, depth, value)
+
     if (Array.isArray(value)) {
       arrayCount += 1
-      for (const item of value) walk(item, depth + 1)
+      for (const item of value) walk(item, depth + 1, `${path}[]`)
     } else if (value !== null && typeof value === 'object') {
       objectCount += 1
-      for (const key of Object.keys(value)) walk(value[key], depth + 1)
+      for (const key of Object.keys(value)) {
+        walk(value[key], depth + 1, path === '$' ? `$.${key}` : `${path}.${key}`)
+      }
     } else {
       primitiveCount += 1
     }
   }
-  walk(data, 0)
+  walk(data, 0, '$')
+
+  const pathsTruncated = maxDepth > MAX_PATH_DEPTH
+
+  const paths: PathStat[] = []
+  for (const acc of pathMap.values()) {
+    const typeCounts = Array.from(acc.typeCounts.entries()).map(([type, count]) => ({ type, count }))
+    let distinct: DistinctResult | null = null
+    if (acc.allPrimitive && acc.distinct.size > 0) {
+      const valuesList = Array.from(acc.distinct.values())
+      distinct = {
+        isEnum: !acc.truncated && valuesList.length <= ENUM_MAX_VALUES,
+        values: valuesList,
+        totalDistinct: acc.truncated ? MAX_DISTINCT_TRACKED : valuesList.length,
+        truncated: acc.truncated,
+      }
+    }
+    paths.push({ path: acc.path, depth: acc.depth, occurrences: acc.occurrences, typeCounts, distinct })
+  }
+  paths.sort((a, b) => a.depth - b.depth || a.path.localeCompare(b.path))
 
   const rootType = getType(data)
-  const stats: RootStats = { rootType, totalNodes, maxDepth, objectCount, arrayCount, primitiveCount }
+  const stats: RootStats = {
+    rootType,
+    totalNodes,
+    maxDepth,
+    objectCount,
+    arrayCount,
+    primitiveCount,
+    pathAnalysis: {
+      paths,
+      uniqueCount: paths.length,
+      maxDepthReached: Math.min(maxDepth, MAX_PATH_DEPTH),
+      truncated: pathsTruncated,
+    },
+  }
 
   if (Array.isArray(data)) {
     stats.length = data.length
@@ -202,7 +299,6 @@ export function analyzeRoot(data: JsonValue): RootStats {
     }
   } else if (data !== null && typeof data === 'object') {
     stats.keyCount = Object.keys(data).length
-    stats.fieldStats = analyzeFields([data as Record<string, JsonValue>])
   }
 
   return stats

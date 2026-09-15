@@ -6,8 +6,10 @@ import {
   analyzeRoot,
   DISTINCT_DISPLAY_LIMIT,
   MAX_DISTINCT_TRACKED,
+  MAX_PATH_DEPTH,
   type DistinctResult,
   type JsonValue,
+  type PathAnalysis,
   type RootStats,
 } from './json/analyze'
 import { formatSize, MAX_INPUT_SIZE, parseJson } from './json/util'
@@ -22,10 +24,9 @@ const SAMPLE = `{
   "meta": { "version": "1.0.0", "count": 3 }
 }`
 
-type ViewMode = 'tree' | 'pretty' | 'compact' | 'schema' | 'stats'
-type IndentOption = 2 | 4
+type ViewMode = 'tree' | 'compact' | 'schema' | 'stats'
 
-const VIEW_MODES: ViewMode[] = ['tree', 'pretty', 'compact', 'schema', 'stats']
+const VIEW_MODES: ViewMode[] = ['tree', 'compact', 'schema', 'stats']
 
 export default function JsonFormat() {
   const { t } = useTranslation()
@@ -33,23 +34,22 @@ export default function JsonFormat() {
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<JsonValue | null>(null)
   const [view, setView] = useState<ViewMode>('tree')
-  const [indent, setIndent] = useState<IndentOption>(2)
   const [copied, setCopied] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const rootStats = useMemo(() => (data !== null ? analyzeRoot(data) : null), [data])
   const schema = useMemo(
-    () => (data !== null && view === 'schema' ? JSON.stringify(generateSchema(data), null, 2) : null),
+    () => (data !== null && view === 'schema' ? generateSchema(data) : null),
     [data, view],
   )
 
   const textOutput = useMemo(() => {
     if (data === null) return ''
-    if (view === 'pretty') return JSON.stringify(data, null, indent)
+    if (view === 'tree') return JSON.stringify(data, null, 2)
     if (view === 'compact') return JSON.stringify(data)
-    if (view === 'schema') return schema ?? ''
+    if (view === 'schema') return JSON.stringify(schema, null, 2)
     return ''
-  }, [data, view, indent, schema])
+  }, [data, view, schema])
 
   const showError = (message: string) => {
     setData(null)
@@ -105,7 +105,7 @@ export default function JsonFormat() {
     }
   }
 
-  const hasTextOutput = view === 'pretty' || view === 'compact' || view === 'schema'
+  const showCopy = view === 'tree' || view === 'compact' || view === 'schema'
 
   return (
     <section className="section tool-page">
@@ -187,16 +187,7 @@ export default function JsonFormat() {
                   </button>
                 ))}
               </div>
-              {view === 'pretty' && (
-                <label className="json-indent">
-                  {t('tools:format.indent')}
-                  <select value={indent} onChange={(e) => setIndent(Number(e.target.value) as IndentOption)}>
-                    <option value={2}>2</option>
-                    <option value={4}>4</option>
-                  </select>
-                </label>
-              )}
-              {hasTextOutput && (
+              {showCopy && (
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => copyText(textOutput)}>
                   {copied ? t('tools:format.copied') : t('tools:format.copy')}
                 </button>
@@ -205,11 +196,10 @@ export default function JsonFormat() {
 
             <div className="json-view">
               {view === 'tree' && <JsonTree data={data} />}
-              {view === 'pretty' && <pre className="json-pre">{textOutput}</pre>}
               {view === 'compact' && <pre className="json-pre json-pre-compact">{textOutput}</pre>}
               {view === 'schema' && (
                 <>
-                  {schema !== null && <pre className="json-pre">{schema}</pre>}
+                  {schema !== null && <JsonTree data={schema as JsonValue} mode="schema" />}
                   <p className="json-note">{t('tools:format.schemaNote')}</p>
                 </>
               )}
@@ -233,6 +223,13 @@ function StatsView({ stats }: { stats: RootStats }) {
         <StatCard label={t('tools:format.stats.objects')} value={String(stats.objectCount)} />
         <StatCard label={t('tools:format.stats.arrays')} value={String(stats.arrayCount)} />
         <StatCard label={t('tools:format.stats.primitives')} value={String(stats.primitiveCount)} />
+        <StatCard label={t('tools:format.stats.uniquePaths')} value={String(stats.pathAnalysis.uniqueCount)} />
+        {stats.length !== undefined && (
+          <StatCard label={t('tools:format.stats.length')} value={String(stats.length)} />
+        )}
+        {stats.keyCount !== undefined && (
+          <StatCard label={t('tools:format.stats.keyCount')} value={String(stats.keyCount)} />
+        )}
       </div>
 
       {stats.elementAnalysis && (
@@ -280,7 +277,7 @@ function StatsView({ stats }: { stats: RootStats }) {
                     <td>
                       {field.present}/{stats.length ?? 1}
                     </td>
-                    <td>{field.distinct ? <DistinctBlock distinct={field.distinct} /> : '—'}</td>
+                    <td>{field.distinct ? <DistinctCell distinct={field.distinct} /> : '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -288,6 +285,80 @@ function StatsView({ stats }: { stats: RootStats }) {
           </div>
         </div>
       )}
+
+      <PathsView analysis={stats.pathAnalysis} />
+    </div>
+  )
+}
+
+function PathsView({ analysis }: { analysis: PathAnalysis }) {
+  const { t } = useTranslation()
+  const [copiedPath, setCopiedPath] = useState<string | null>(null)
+
+  const copyPath = async (path: string) => {
+    try {
+      await navigator.clipboard.writeText(path)
+      setCopiedPath(path)
+      setTimeout(() => setCopiedPath(null), 1200)
+    } catch {
+      // clipboard unavailable
+    }
+  }
+
+  return (
+    <div className="jstats-block">
+      <div className="jblock-head">
+        <h4>{t('tools:format.stats.paths')}</h4>
+        <span className="jblock-meta">
+          {t('tools:format.stats.uniquePaths')} {analysis.uniqueCount}
+        </span>
+      </div>
+      {analysis.paths.length === 0 ? (
+        <p className="jnote">{t('tools:format.stats.noPaths')}</p>
+      ) : (
+        <div className="jtable-wrap jpath-table-wrap">
+          <table className="jtable jpath-table">
+            <thead>
+              <tr>
+                <th>{t('tools:format.stats.path')}</th>
+                <th>{t('tools:format.stats.depth')}</th>
+                <th>{t('tools:format.stats.types')}</th>
+                <th>{t('tools:format.stats.occurrences')}</th>
+                <th>{t('tools:format.stats.distinct')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analysis.paths.map((p) => (
+                <tr key={p.path}>
+                  <td>
+                    <button type="button" className="jpath-copy" onClick={() => copyPath(p.path)} title={t('tools:format.copyPath')}>
+                      <span className="jpath">{p.path}</span>
+                      {copiedPath === p.path ? <CheckIcon /> : <CopyIcon />}
+                    </button>
+                  </td>
+                  <td className="jnum">{p.depth}</td>
+                  <td>
+                    <div className="jtype-row">
+                      {p.typeCounts.map((tc) => (
+                        <span className="jelem" key={tc.type}>
+                          <span className={`jtype is-${tc.type}`}>{tc.type}</span>
+                          <span className="jtimes">×{tc.count}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="jnum">{p.occurrences}</td>
+                  <td>{p.distinct ? <DistinctCell distinct={p.distinct} /> : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="jnote">
+        {t('tools:format.stats.pathsNote', { depth: MAX_PATH_DEPTH })}
+        {analysis.truncated && ' ' + t('tools:format.stats.pathsTruncated', { depth: MAX_PATH_DEPTH })}
+      </p>
     </div>
   )
 }
@@ -331,5 +402,35 @@ function DistinctBlock({ distinct }: { distinct: DistinctResult }) {
         </div>
       )}
     </div>
+  )
+}
+
+function DistinctCell({ distinct }: { distinct: DistinctResult }) {
+  const { t } = useTranslation()
+  return (
+    <span className="jdistinct-cell">
+      <span className={distinct.isEnum ? 'jdistinct-num is-enum' : 'jdistinct-num'}>
+        {distinct.totalDistinct}
+        {distinct.truncated ? '+' : ''}
+      </span>
+      {distinct.isEnum && <span className="jenum-badge">{t('tools:format.enumLabel')}</span>}
+    </span>
+  )
+}
+
+function CopyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
   )
 }
