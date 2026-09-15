@@ -16,7 +16,7 @@ export default function ToolPlaceholder() {
     <section className="section tool-placeholder">
       <div className="container container-narrow">
         <div className="tool-placeholder-inner">
-          <span className="badge">{t(`tools:${toolId}.tag`)}</span>
+          <span className="badge">{t(`tools:tags.${t(`tools:${toolId}.tag`)}`)}</span>
           <h1>{t(`tools:${toolId}.name`)}</h1>
           <p className="tool-placeholder-desc">{t(`tools:${toolId}.desc`)}</p>
           <span className="tool-placeholder-status">

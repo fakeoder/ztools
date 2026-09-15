@@ -218,17 +218,26 @@ const zh = {
     json_diff: {
       name: 'JSON 比对',
       desc: '对比两个 JSON 文档，精确定位差异。',
-      tag: '数据',
+      tag: 'data',
     },
     json_format: {
       name: 'JSON 格式化',
       desc: '一键格式化、校验与压缩 JSON。',
-      tag: '数据',
+      tag: 'data',
     },
     timestamp: {
       name: '时间戳转换',
       desc: '在 Unix 时间戳与可读日期之间转换。',
-      tag: '时间',
+      tag: 'time',
+    },
+    tags: {
+      data: '数据',
+      time: '时间',
+    },
+    search: {
+      placeholder: '搜索工具…',
+      all: '全部',
+      empty: '没有找到匹配的工具。',
     },
     placeholder: {
       title: '{{name}}',

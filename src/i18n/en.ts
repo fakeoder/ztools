@@ -237,6 +237,15 @@ const en = {
       desc: 'Convert between Unix timestamps and human-readable dates.',
       tag: 'time',
     },
+    tags: {
+      data: 'Data',
+      time: 'Time',
+    },
+    search: {
+      placeholder: 'Search tools…',
+      all: 'All',
+      empty: 'No tools match your search.',
+    },
     placeholder: {
       title: '{{name}}',
       status: 'Under construction',
