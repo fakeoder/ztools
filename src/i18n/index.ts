@@ -18,8 +18,18 @@ function getInitialLanguage(): string {
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: en },
-    'zh-CN': { translation: zh },
+    en: {
+      common: en.common,
+      landing: en.landing,
+      legal: en.legal,
+      tools: en.tools,
+    },
+    'zh-CN': {
+      common: zh.common,
+      landing: zh.landing,
+      legal: zh.legal,
+      tools: zh.tools,
+    },
   },
   lng: getInitialLanguage(),
   fallbackLng: 'en',
