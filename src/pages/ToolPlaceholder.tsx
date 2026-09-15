@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import NotFound from './NotFound'
 
-const KNOWN_TOOLS = ['json_diff', 'json_format', 'timestamp'] as const
+const KNOWN_TOOLS = ['json_diff', 'text_diff', 'json_format', 'timestamp'] as const
 
 export default function ToolPlaceholder() {
   const { toolId } = useParams()

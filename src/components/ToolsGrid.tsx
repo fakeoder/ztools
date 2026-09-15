@@ -14,6 +14,16 @@ const TOOLS = [
     ),
   },
   {
+    id: 'text_diff',
+    tags: ['data', 'text'],
+    icon: (
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 6h10M4 12h16M4 18h10" />
+        <path d="M18 4v6M15 7h6" />
+      </svg>
+    ),
+  },
+  {
     id: 'json_format',
     tags: ['data', 'json', 'format'],
     icon: (
