@@ -91,10 +91,10 @@ function toUnified(collapsed: ViewRow[]): UnifiedRow[] {
     const r = vr as DiffRow
     switch (r.kind) {
       case 'added':
-        out.push({ kind: 'sign', sign: '-', cls: 'd-del', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: r.note })
+        out.push({ kind: 'sign', sign: '+', cls: 'd-add', text: r.r, ln: null, rn: r.rn, fullIndex: vr.fullIndex, cp: r.cpR, note: r.note })
         break
       case 'removed':
-        out.push({ kind: 'sign', sign: '+', cls: 'd-add', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: r.note })
+        out.push({ kind: 'sign', sign: '-', cls: 'd-del', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: r.note })
         break
       case 'modified':
         out.push({ kind: 'sign', sign: '~', cls: 'd-mod', text: r.l, ln: r.ln, rn: null, fullIndex: vr.fullIndex, cp: r.cpL, note: null })
@@ -493,8 +493,8 @@ export default function JsonDiff() {
           <div className="diff-output">
             <div className="diff-toolbar">
               <div className="diff-stats">
-                <span className="d-stat d-stat-add">+{result.stats.removed}</span>
-                <span className="d-stat d-stat-del">-{result.stats.added}</span>
+                <span className="d-stat d-stat-add">+{result.stats.added}</span>
+                <span className="d-stat d-stat-del">-{result.stats.removed}</span>
                 <span className="d-stat d-stat-mod">~{result.stats.modified}</span>
                 <span className="d-stat d-stat-move">⇄{result.stats.moved}</span>
                 {result.ignoredCount > 0 && <span className="d-stat d-stat-ign">{t('tools:diff.ignored', { count: result.ignoredCount })}</span>}
@@ -608,9 +608,9 @@ export default function JsonDiff() {
 function kindSign(kind: string): string {
   switch (kind) {
     case 'added':
-      return '-'
-    case 'removed':
       return '+'
+    case 'removed':
+      return '-'
     case 'modified':
       return '~'
     case 'moved':
@@ -623,9 +623,9 @@ function kindSign(kind: string): string {
 function badgeClass(kind: string): string {
   switch (kind) {
     case 'added':
-      return 'd-badge-added'
+      return 'd-badge-add'
     case 'removed':
-      return 'd-badge-removed'
+      return 'd-badge-del'
     case 'modified':
       return 'd-badge-modified'
     case 'moved':
@@ -638,9 +638,9 @@ function badgeClass(kind: string): string {
 function cellClass(kind: RowKind, side: 'l' | 'r'): string {
   switch (kind) {
     case 'added':
-      return side === 'r' ? 'd-del' : 'd-ctx'
+      return side === 'r' ? 'd-add' : 'd-ctx'
     case 'removed':
-      return side === 'l' ? 'd-add' : 'd-ctx'
+      return side === 'l' ? 'd-del' : 'd-ctx'
     case 'modified':
       return 'd-mod'
     case 'moved':
@@ -654,10 +654,10 @@ function cellClass(kind: RowKind, side: 'l' | 'r'): string {
 
 function cellSign(kind: RowKind, side: 'l' | 'r'): string {
   switch (kind) {
-    case 'removed':
-      return side === 'l' ? '+' : ''
     case 'added':
-      return side === 'r' ? '-' : ''
+      return side === 'r' ? '+' : ''
+    case 'removed':
+      return side === 'l' ? '-' : ''
     case 'modified':
       return '~'
     case 'moved':

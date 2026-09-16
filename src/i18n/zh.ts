@@ -282,8 +282,8 @@ const zh = {
       },
     },
     diff: {
-      testLabel: '测试（基准）',
-      refLabel: '参考（对比）',
+      testLabel: '原始（基准）',
+      refLabel: '修改后（对比）',
       pastePlaceholder: '在此粘贴 JSON…',
       upload: '上传文件',
       readError: '无法读取文件。',
@@ -312,7 +312,7 @@ const zh = {
       shareCopied: '分享链接已复制到剪贴板。',
       changesLabel: '变更列表',
       noChanges: '没有差异。',
-      baselineHint: 'Test（左）为基准。+ 仅 Test 存在（Test 更多）；− 仅 Reference 存在（Test 更少）；~ 值发生变化。Test 缺失的条目标记为“less”。',
+      baselineHint: 'Original（左）为基准。+ 为新增（仅 Modified 存在）；− 为删除（仅 Original 存在）；~ 为值发生变化；⇄ 为移动。Original 缺失的条目标记为“less”。',
       lessPlaceholder: 'less',
     },
     textdiff: {

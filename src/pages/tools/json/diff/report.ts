@@ -25,9 +25,10 @@ function rowClass(kind: string): string {
 }
 
 function sign(kind: string): string {
-  if (kind === 'added' || kind === 'moved') return '+'
+  if (kind === 'added') return '+'
   if (kind === 'removed') return '-'
-  if (kind === 'modified') return '±'
+  if (kind === 'moved') return '⇄'
+  if (kind === 'modified') return '~'
   return ' '
 }
 

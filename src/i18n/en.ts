@@ -289,8 +289,8 @@ const en = {
       },
     },
     diff: {
-      testLabel: 'Test (baseline)',
-      refLabel: 'Reference (compared)',
+      testLabel: 'Original (baseline)',
+      refLabel: 'Modified (compared)',
       pastePlaceholder: 'Paste JSON here…',
       upload: 'Upload file',
       readError: 'Could not read the file.',
@@ -320,7 +320,7 @@ const en = {
       changesLabel: 'Changes',
       noChanges: 'No differences.',
       baselineHint:
-        'Test (left) is the baseline. + exists only in Test (Test has more); − exists only in Reference (Test has less); ~ value changed. Entries missing from Test are marked “less”.',
+        'Original (left) is the baseline. + added (only in Modified); − removed (only in Original); ~ changed; ⇄ moved. Entries missing from Original are marked “less”.',
       lessPlaceholder: 'less',
     },
     textdiff: {
