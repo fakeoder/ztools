@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import LineNumberedTextarea from '../../components/LineNumberedTextarea'
 import { decodeShare, encodeShare } from './json/diff/share'
 import type { CharPiece, DiffOptions, DiffResult, DiffRow, RowKind } from './json/diff/types'
 
@@ -371,7 +372,7 @@ export default function JsonDiff() {
                 {t('tools:diff.upload')}
               </button>
             </div>
-            <textarea
+            <LineNumberedTextarea
               className="json-input diff-input"
               value={leftText}
               onChange={(e) => setLeftText(e.target.value)}
@@ -397,7 +398,7 @@ export default function JsonDiff() {
                 {t('tools:diff.upload')}
               </button>
             </div>
-            <textarea
+            <LineNumberedTextarea
               className="json-input diff-input"
               value={rightText}
               onChange={(e) => setRightText(e.target.value)}
