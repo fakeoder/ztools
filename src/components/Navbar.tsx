@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent } from 'react'
+import { useState, type MouseEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getInitialTheme, setTheme, type Theme } from '../theme'
@@ -12,10 +12,6 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-
-  useEffect(() => {
-    setMenuOpen(false)
-  }, [location.pathname])
 
   const toggleTheme = () => {
     const next: Theme = theme === 'light' ? 'dark' : 'light'
@@ -69,7 +65,7 @@ export default function Navbar() {
             </a>
           ))}
           <div className="navbar-mobile-search">
-            <ToolSearch />
+            <ToolSearch onSelect={closeMenu} />
           </div>
           <div className="navbar-mobile-actions">
             <NavActions theme={theme} onToggleTheme={toggleTheme} i18n={i18n} onLang={changeLanguage} />

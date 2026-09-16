@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FONTS, availableWeight, getFont, type FontCategory, type FontWeight } from './favicon/fonts'
+import { GRADIENT_PRESETS, randomHexColor, randomPreset } from './favicon/palettes'
 import {
   buildIco,
   buildSvg,
@@ -135,6 +136,18 @@ export default function Favicon() {
     },
     [config],
   )
+
+  const randomizeStart = () => setGradColorA(randomHexColor())
+  const randomizeEnd = () => setGradColorB(randomHexColor())
+  const applyPreset = (from: string, to: string) => {
+    setBgMode('gradient')
+    setGradColorA(from)
+    setGradColorB(to)
+  }
+  const randomizeCombo = () => {
+    const preset = randomPreset()
+    applyPreset(preset.from, preset.to)
+  }
 
   const toolTags = useMemo(() => t('tools:favicon.tags', { returnObjects: true }) as string[], [t])
 
@@ -279,10 +292,53 @@ export default function Favicon() {
                 <div className="fav-control-row">
                   <label className="fav-control-label" htmlFor="fav-grad-a">{t('tools:favicon.colorStart')}</label>
                   <input id="fav-grad-a" className="fav-color" type="color" value={gradColorA} onChange={(e) => setGradColorA(e.target.value)} />
+                  <button
+                    type="button"
+                    className="fav-icon-btn"
+                    title={t('tools:favicon.randomColor')}
+                    aria-label={t('tools:favicon.randomColor')}
+                    onClick={randomizeStart}
+                  >
+                    <ShuffleIcon />
+                  </button>
                 </div>
                 <div className="fav-control-row">
                   <label className="fav-control-label" htmlFor="fav-grad-b">{t('tools:favicon.colorEnd')}</label>
                   <input id="fav-grad-b" className="fav-color" type="color" value={gradColorB} onChange={(e) => setGradColorB(e.target.value)} />
+                  <button
+                    type="button"
+                    className="fav-icon-btn"
+                    title={t('tools:favicon.randomColor')}
+                    aria-label={t('tools:favicon.randomColor')}
+                    onClick={randomizeEnd}
+                  >
+                    <ShuffleIcon />
+                  </button>
+                </div>
+                <div className="fav-control-row fav-presets-row">
+                  <span className="fav-control-label">{t('tools:favicon.presets')}</span>
+                  <div className="fav-presets">
+                    {GRADIENT_PRESETS.map((preset) => (
+                      <button
+                        type="button"
+                        key={preset.id}
+                        className="fav-preset"
+                        style={{ background: `linear-gradient(135deg, ${preset.from}, ${preset.to})` }}
+                        title={t(`tools:favicon.paletteNames.${preset.id}`)}
+                        aria-label={t(`tools:favicon.paletteNames.${preset.id}`)}
+                        onClick={() => applyPreset(preset.from, preset.to)}
+                      />
+                    ))}
+                    <button
+                      type="button"
+                      className="fav-preset-random"
+                      title={t('tools:favicon.randomCombo')}
+                      aria-label={t('tools:favicon.randomCombo')}
+                      onClick={randomizeCombo}
+                    >
+                      <ShuffleIcon />
+                    </button>
+                  </div>
                 </div>
               </>
             )}
@@ -334,6 +390,18 @@ export default function Favicon() {
         </div>
       </div>
     </section>
+  )
+}
+
+function ShuffleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m18 14 4 4-4 4" />
+      <path d="m18 2 4 4-4 4" />
+      <path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22" />
+      <path d="M2 6h1.972a4 4 0 0 1 3.6 2.2" />
+      <path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45" />
+    </svg>
   )
 }
 

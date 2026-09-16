@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ALL_TAG, TOOLS, TOOL_TAGS } from './toolData'
 
-export default function ToolSearch() {
+export default function ToolSearch({ onSelect }: { onSelect?: () => void } = {}) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -34,6 +34,7 @@ export default function ToolSearch() {
 
   const select = (id: string) => {
     setOpen(false)
+    onSelect?.()
     navigate(`/${id}`)
   }
 
