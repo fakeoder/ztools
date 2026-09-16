@@ -1435,6 +1435,16 @@ body {
   color: #b45309;
 }
 
+.d-badge-add {
+  background: rgba(26, 127, 55, 0.14);
+  color: #1a7f37;
+}
+
+.d-badge-del {
+  background: rgba(207, 34, 46, 0.14);
+  color: #cf222e;
+}
+
 .d-badge-moved {
   background: rgba(111, 66, 193, 0.14);
   color: #6f42c1;
@@ -1450,6 +1460,14 @@ body {
 
 :root[data-theme='dark'] .d-badge-modified {
   color: #d4a72c;
+}
+
+:root[data-theme='dark'] .d-badge-add {
+  color: #56d364;
+}
+
+:root[data-theme='dark'] .d-badge-del {
+  color: #ff7b72;
 }
 
 :root[data-theme='dark'] .d-badge-moved {

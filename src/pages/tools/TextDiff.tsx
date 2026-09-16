@@ -558,9 +558,9 @@ function kindSign(kind: string): string {
 function badgeClass(kind: string): string {
   switch (kind) {
     case 'added':
-      return 'd-badge-added'
+      return 'd-badge-add'
     case 'removed':
-      return 'd-badge-removed'
+      return 'd-badge-del'
     case 'modified':
       return 'd-badge-modified'
     default:

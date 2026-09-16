@@ -2,7 +2,6 @@ import { diff_match_patch } from '@dmsnell/diff-match-patch'
 import { buildReportHtml } from './report'
 import type {
   ChangeItem,
-  ChangeKind,
   CharPiece,
   TextDiffOptions,
   TextDiffResult,
@@ -117,58 +116,32 @@ export function computeTextDiff(leftText: string, rightText: string, opts: TextD
   let rn = 0
 
   const pushBlock = (delTokens: string[], insTokens: string[]) => {
-    const startRow = rows.length
     const n = Math.max(delTokens.length, insTokens.length)
-    let firstLineNo = 0
-    let firstText = ''
-    let modCount = 0
-    let addCount = 0
-    let delCount = 0
 
     for (let k = 0; k < n; k++) {
       const dl = delTokens[k]
       const il = insTokens[k]
+      const rowIndex = rows.length
       if (dl !== undefined && il !== undefined) {
-        const l = dl
-        const r = il
         let cpL: CharPiece[] | null = null
         let cpR: CharPiece[] | null = null
-        if (opts.textDiff && l.length + r.length <= MAX_CHARS_PER_LINE_DIFF) {
-          const pieces = diffPieces(l, r)
+        if (opts.textDiff && dl.length + il.length <= MAX_CHARS_PER_LINE_DIFF) {
+          const pieces = diffPieces(dl, il)
           cpL = pieces.l
           cpR = pieces.r
         }
-        rows.push({ kind: 'modified', l, r, ln: ++ln, rn: ++rn, cpL, cpR })
-        modCount++
-        if (!firstText) {
-          firstLineNo = ln
-          firstText = l
-        }
+        rows.push({ kind: 'modified', l: dl, r: il, ln: ++ln, rn: ++rn, cpL, cpR })
+        stats.modified++
+        changes.push({ kind: 'modified', rowIndex, lineNo: ln, text: dl })
       } else if (dl !== undefined) {
-        const l = dl
-        rows.push({ kind: 'removed', l, r: null, ln: ++ln, rn: null, cpL: null, cpR: null })
-        delCount++
-        if (!firstText) {
-          firstLineNo = ln
-          firstText = l
-        }
+        rows.push({ kind: 'removed', l: dl, r: null, ln: ++ln, rn: null, cpL: null, cpR: null })
+        stats.removed++
+        changes.push({ kind: 'removed', rowIndex, lineNo: ln, text: dl })
       } else if (il !== undefined) {
-        const r = il
-        rows.push({ kind: 'added', l: null, r, ln: null, rn: ++rn, cpL: null, cpR: null })
-        addCount++
-        if (!firstText) {
-          firstLineNo = rn
-          firstText = r
-        }
+        rows.push({ kind: 'added', l: null, r: il, ln: null, rn: ++rn, cpL: null, cpR: null })
+        stats.added++
+        changes.push({ kind: 'added', rowIndex, lineNo: rn, text: il })
       }
-    }
-
-    stats.modified += modCount
-    stats.added += addCount
-    stats.removed += delCount
-    if (n > 0) {
-      const kind: ChangeKind = modCount > 0 ? 'modified' : addCount > 0 ? 'added' : 'removed'
-      changes.push({ kind, rowIndex: startRow, lineNo: firstLineNo, text: firstText })
     }
   }
 
