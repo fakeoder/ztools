@@ -346,6 +346,161 @@ body {
   background: var(--text);
 }
 
+.navbar-mobile-search {
+  display: none;
+}
+
+/* ---------- Header tool search ---------- */
+
+.tool-search {
+  position: relative;
+  width: 200px;
+}
+
+.tool-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.65rem;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tool-search-input {
+  width: 100%;
+  padding: 0.45rem 0.7rem 0.45rem 2.05rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-elev);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.tool-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.tool-search-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 60;
+  width: 340px;
+  max-width: min(340px, calc(100vw - 3rem));
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elev);
+  box-shadow: var(--shadow-md);
+}
+
+.tool-search-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.tool-search-tags button {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elev);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.tool-search-tags button:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.tool-search-tags button.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.tool-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: min(60vh, 360px);
+  overflow-y: auto;
+}
+
+.tool-search-results button {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.tool-search-results button:hover {
+  background: var(--accent-soft);
+}
+
+.tool-search-result-icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.tool-search-result-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tool-search-result-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tool-search-result-name {
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.tool-search-result-desc {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tool-search-empty {
+  padding: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 /* ---------- Hero ---------- */
 
 .hero {
@@ -2217,35 +2372,6 @@ body {
   .diff-list {
     max-height: 30vh;
   }
-}
-
-@media (max-width: 640px) {
-  .section {
-    padding: 3.5rem 0;
-  }
-
-  .feature-grid,
-  .tools-grid,
-  .contact-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 1.75rem;
-  }
-
-  .footer-bottom {
-    flex-direction: column;
-  }
-
-  .diff-inputs {
-    grid-template-columns: 1fr;
-  }
-
-  .diff-scroll {
-    height: 60vh;
-  }
 
   .navbar-burger {
     display: flex;
@@ -2275,6 +2401,23 @@ body {
     border-bottom: 1px solid var(--border);
   }
 
+  .navbar-mobile-search {
+    display: block;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .navbar-mobile-search .tool-search {
+    width: 100%;
+  }
+
+  .navbar-mobile-search .tool-search-panel {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: none;
+  }
+
   .navbar-mobile-actions {
     display: flex;
     align-items: center;
@@ -2284,5 +2427,34 @@ body {
 
   .navbar-actions {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 3.5rem 0;
+  }
+
+  .feature-grid,
+  .tools-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+  }
+
+  .diff-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .diff-scroll {
+    height: 60vh;
   }
 }

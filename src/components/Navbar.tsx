@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState, type MouseEvent } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getInitialTheme, setTheme, type Theme } from '../theme'
+import ToolSearch from './ToolSearch'
 
 const GITHUB_URL = 'https://github.com/fakeoder/ztools'
 
@@ -9,6 +10,12 @@ export default function Navbar() {
   const { t, i18n } = useTranslation()
   const [theme, setCurrentTheme] = useState<Theme>(getInitialTheme)
   const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
 
   const toggleTheme = () => {
     const next: Theme = theme === 'light' ? 'dark' : 'light'
@@ -21,6 +28,22 @@ export default function Navbar() {
   }
 
   const closeMenu = () => setMenuOpen(false)
+
+  const goToSection = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    event.preventDefault()
+    closeMenu()
+    const hash = href.split('#')[1]
+    const path = href.split('#')[0] || '/'
+    if (location.pathname === path) {
+      if (hash) {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    } else {
+      navigate(href)
+    }
+  }
 
   const navLinks = [
     { href: '/#features', label: t('common:nav.features') },
@@ -41,16 +64,20 @@ export default function Navbar() {
 
         <nav className={`navbar-menu${menuOpen ? ' is-open' : ''}`}>
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} onClick={closeMenu}>
+            <a key={link.href} href={link.href} onClick={(event) => goToSection(event, link.href)}>
               {link.label}
             </a>
           ))}
+          <div className="navbar-mobile-search">
+            <ToolSearch />
+          </div>
           <div className="navbar-mobile-actions">
             <NavActions theme={theme} onToggleTheme={toggleTheme} i18n={i18n} onLang={changeLanguage} />
           </div>
         </nav>
 
         <div className="navbar-actions">
+          <ToolSearch />
           <NavActions theme={theme} onToggleTheme={toggleTheme} i18n={i18n} onLang={changeLanguage} />
           <a
             className="btn btn-primary btn-sm"
