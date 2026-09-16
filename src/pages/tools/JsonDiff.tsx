@@ -422,7 +422,7 @@ export default function JsonDiff() {
         <div className="diff-options">
           <label className="diff-opt-field">
             <span>{t('tools:diff.ignoreLabel')}</span>
-            <textarea
+            <LineNumberedTextarea
               className="json-input diff-opt-text"
               value={ignoreText}
               onChange={(e) => setIgnoreText(e.target.value)}
@@ -433,7 +433,7 @@ export default function JsonDiff() {
           </label>
           <label className="diff-opt-field">
             <span>{t('tools:diff.identityLabel')}</span>
-            <textarea
+            <LineNumberedTextarea
               className="json-input diff-opt-text"
               value={identityText}
               onChange={(e) => setIdentityText(e.target.value)}

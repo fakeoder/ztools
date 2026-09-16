@@ -876,6 +876,16 @@ body {
   padding: 0 0.6rem 0 0.75rem;
 }
 
+.diff-opt-field .line-numbered,
+.json-toolbar .line-numbered {
+  width: 100%;
+}
+
+.diff-opt-field .line-numbered {
+  flex: 1;
+  min-width: 0;
+}
+
 .json-actions {
   display: flex;
   flex-wrap: wrap;

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import LineNumberedTextarea from '../../components/LineNumberedTextarea'
 import JsonTree from './json/JsonTree'
 import { generateSchema } from './json/schema'
 import type { JsonValue } from './json/analyze'
@@ -108,7 +109,7 @@ export default function JsonFormat() {
         </div>
 
         <div className="json-toolbar">
-          <textarea
+          <LineNumberedTextarea
             className="json-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
