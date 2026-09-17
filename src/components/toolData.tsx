@@ -49,6 +49,16 @@ export const TOOLS: Tool[] = [
     ),
   },
   {
+    id: 'markdown',
+    tags: ['text', 'format', 'markdown'],
+    icon: (
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M4 19.5A2.5 2.5 0 0 1 1.5 17V7a2.5 2.5 0 0 1 2.5-2.5h16A2.5 2.5 0 0 1 22.5 7v10a2.5 2.5 0 0 1-2.5 2.5z" />
+        <path d="M7 16V8l3.5 4L14 8v8" />
+      </svg>
+    ),
+  },
+  {
     id: 'timestamp',
     tags: ['time'],
     icon: (

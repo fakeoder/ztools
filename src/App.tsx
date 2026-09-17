@@ -12,6 +12,7 @@ import JsonFormat from './pages/tools/JsonFormat'
 import JsonDiff from './pages/tools/JsonDiff'
 import TextDiff from './pages/tools/TextDiff'
 import Favicon from './pages/tools/Favicon'
+import Markdown from './pages/tools/Markdown'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/json_diff" element={<JsonDiff />} />
           <Route path="/text_diff" element={<TextDiff />} />
           <Route path="/favicon" element={<Favicon />} />
+          <Route path="/markdown" element={<Markdown />} />
           <Route path="/:toolId" element={<ToolPlaceholder />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
