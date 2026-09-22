@@ -13,6 +13,7 @@ import JsonDiff from './pages/tools/JsonDiff'
 import TextDiff from './pages/tools/TextDiff'
 import Favicon from './pages/tools/Favicon'
 import Markdown from './pages/tools/Markdown'
+import Encrypt from './pages/tools/Encrypt'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/text_diff" element={<TextDiff />} />
           <Route path="/favicon" element={<Favicon />} />
           <Route path="/markdown" element={<Markdown />} />
+          <Route path="/encrypt" element={<Encrypt />} />
           <Route path="/:toolId" element={<ToolPlaceholder />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

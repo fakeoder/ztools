@@ -25,6 +25,7 @@
 | `/json_diff` | JSON Diff | 两个 JSON 的差异比对 |
 | `/text_diff` | Text Diff | 两段文本的逐行差异比对 |
 | `/json_format` | JSON Formatter | JSON 格式化 / 压缩 |
+| `/encrypt` | 加密工具 | 本地文本加解密（AES-GCM / RSA-OAEP），支持二维码导出 |
 | `/timestamp` | Timestamp | 时间戳与日期互转 |
 
 ## 技术栈
@@ -57,6 +58,7 @@ npm run preview
 /json_diff
 /text_diff
 /json_format
+/encrypt
 /timestamp
 ```
 

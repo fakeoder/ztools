@@ -25,6 +25,7 @@ An online tool site for developers. Core goals: **simple, useful, powerful — s
 | `/json_diff` | JSON Diff | Diff between two JSON documents |
 | `/text_diff` | Text Diff | Line-by-line diff between two texts |
 | `/json_format` | JSON Formatter | Format / minify JSON |
+| `/encrypt` | Encryption Tool | Local text encryption (AES-GCM / RSA-OAEP) with QR export |
 | `/timestamp` | Timestamp | Convert between timestamps and dates |
 
 ## Tech stack
@@ -57,6 +58,7 @@ Each tool maps to a single route, named with lowercase letters and underscores:
 /json_diff
 /text_diff
 /json_format
+/encrypt
 /timestamp
 ```
 
