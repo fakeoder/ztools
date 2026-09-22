@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
-const MAX_SIZE = 10 * 1024 * 1024
+const MAX_SIZE = 50 * 1024 * 1024
 
 const VIEWPORTS = ['phone', 'tablet', 'desktop'] as const
 
