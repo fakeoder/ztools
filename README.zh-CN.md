@@ -26,6 +26,7 @@
 | `/text_diff` | Text Diff | 两段文本的逐行差异比对 |
 | `/json_format` | JSON Formatter | JSON 格式化 / 压缩 |
 | `/encrypt` | 加密工具 | 本地文本加解密（AES-GCM / RSA-OAEP），支持二维码导出 |
+| `/html_viewer` | HTML 查看器 | 本地预览单个 HTML 文件，专为手机用户设计 |
 | `/timestamp` | Timestamp | 时间戳与日期互转 |
 
 ## 技术栈

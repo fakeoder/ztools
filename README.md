@@ -26,6 +26,7 @@ An online tool site for developers. Core goals: **simple, useful, powerful — s
 | `/text_diff` | Text Diff | Line-by-line diff between two texts |
 | `/json_format` | JSON Formatter | Format / minify JSON |
 | `/encrypt` | Encryption Tool | Local text encryption (AES-GCM / RSA-OAEP) with QR export |
+| `/html_viewer` | HTML Viewer | Preview single HTML files locally — built for phones |
 | `/timestamp` | Timestamp | Convert between timestamps and dates |
 
 ## Tech stack
