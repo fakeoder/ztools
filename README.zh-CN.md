@@ -28,6 +28,7 @@
 | `/encrypt` | 加密工具 | 本地文本加解密（AES-GCM / RSA-OAEP），支持二维码导出 |
 | `/html_viewer` | HTML 查看器 | 本地预览单个 HTML 文件，专为手机用户设计 |
 | `/timestamp` | Timestamp | 时间戳与日期互转 |
+| `/ics_calendar` | ICS 日历编辑器 | 导入、修改并导出 .ics 日历文件（事件、循环、地点等） |
 
 ## 技术栈
 
@@ -61,6 +62,7 @@ npm run preview
 /json_format
 /encrypt
 /timestamp
+/ics_calendar
 ```
 
 ## 目录结构（规划）

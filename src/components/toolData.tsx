@@ -90,6 +90,17 @@ export const TOOLS: Tool[] = [
       </svg>
     ),
   },
+  {
+    id: 'ics_calendar',
+    tags: ['time', 'data'],
+    icon: (
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M3 10h18M8 3v4M16 3v4" />
+        <path d="M8 15h3M13 15h3M8 18h6" />
+      </svg>
+    ),
+  },
 ]
 
 export const TOOL_TAGS = Array.from(new Set(TOOLS.flatMap((tool) => tool.tags)))

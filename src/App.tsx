@@ -15,6 +15,7 @@ import Favicon from './pages/tools/Favicon'
 import Markdown from './pages/tools/Markdown'
 import Encrypt from './pages/tools/Encrypt'
 import HtmlViewer from './pages/tools/HtmlViewer'
+import IcsCalendar from './pages/tools/IcsCalendar'
 import NotFound from './pages/NotFound'
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/markdown" element={<Markdown />} />
           <Route path="/encrypt" element={<Encrypt />} />
           <Route path="/html_viewer" element={<HtmlViewer />} />
+          <Route path="/ics_calendar" element={<IcsCalendar />} />
           <Route path="/:toolId" element={<ToolPlaceholder />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

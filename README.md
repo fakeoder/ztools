@@ -28,6 +28,7 @@ An online tool site for developers. Core goals: **simple, useful, powerful — s
 | `/encrypt` | Encryption Tool | Local text encryption (AES-GCM / RSA-OAEP) with QR export |
 | `/html_viewer` | HTML Viewer | Preview single HTML files locally — built for phones |
 | `/timestamp` | Timestamp | Convert between timestamps and dates |
+| `/ics_calendar` | ICS Calendar Editor | Import, edit, and export .ics calendar files (events, recurrence, locations) |
 
 ## Tech stack
 
@@ -61,6 +62,7 @@ Each tool maps to a single route, named with lowercase letters and underscores:
 /json_format
 /encrypt
 /timestamp
+/ics_calendar
 ```
 
 ## Project structure (planned)
