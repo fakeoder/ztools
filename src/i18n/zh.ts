@@ -541,6 +541,15 @@ const zh = {
       advancedRepeat: 'RRULE（高级）',
       rruleInvalid: 'RRULE 无效——请修正或清空该字段。',
       extrasNote: '其他属性（{{count}} 项）将在导出时原样保留。',
+      calSettings: '日历设置',
+      searchPlaceholder: '搜索事件…',
+      searchEmpty: '没有匹配的事件。',
+      sections: {
+        time: '时间',
+        repeat: '重复',
+        details: '详情',
+        advanced: '高级',
+      },
     },
     tags: {
       data: '数据',

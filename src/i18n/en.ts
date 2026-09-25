@@ -550,6 +550,15 @@ const en = {
       advancedRepeat: 'RRULE (advanced)',
       rruleInvalid: 'Invalid RRULE — fix it or clear the field.',
       extrasNote: 'Additional properties ({{count}}) are preserved on export.',
+      calSettings: 'Calendar settings',
+      searchPlaceholder: 'Search events…',
+      searchEmpty: 'No events match your search.',
+      sections: {
+        time: 'Time',
+        repeat: 'Repeat',
+        details: 'Details',
+        advanced: 'Advanced',
+      },
     },
     tags: {
       data: 'Data',

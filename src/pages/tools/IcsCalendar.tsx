@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type DragEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import LineNumberedTextarea from '../../components/LineNumberedTextarea'
 import { buildIcs } from './ics/build'
@@ -83,7 +83,14 @@ export default function IcsCalendar() {
   const [rawText, setRawText] = useState('')
   const [rawError, setRawError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [search, setSearch] = useState('')
+  const [calOpen, setCalOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
+  const summaryRef = useRef<HTMLInputElement>(null)
+  const focusTitleRef = useRef(false)
+  const prevSelectedRef = useRef<string | null>(null)
 
   const toolTags = useMemo(() => t('tools:ics_calendar.tags', { returnObjects: true }) as string[], [t])
 
@@ -92,6 +99,36 @@ export default function IcsCalendar() {
     [doc, selectedId],
   )
   const rr = useMemo(() => parseRRule(selected?.rrule), [selected?.rrule])
+
+  const visibleEvents = useMemo(() => {
+    if (!doc) return []
+    const query = search.trim().toLowerCase()
+    if (!query) return doc.events
+    return doc.events.filter((event) =>
+      [event.summary, event.location, event.description].some((value) => value.toLowerCase().includes(query)),
+    )
+  }, [doc, search])
+
+  useEffect(() => {
+    const previous = prevSelectedRef.current
+    prevSelectedRef.current = selectedId
+    if (selectedId && listRef.current) {
+      const items = listRef.current.querySelectorAll<HTMLElement>('[data-uid]')
+      for (const item of Array.from(items)) {
+        if (item.dataset.uid === selectedId) {
+          item.scrollIntoView({ block: 'nearest' })
+          break
+        }
+      }
+    }
+    if (selectedId && selectedId !== previous && previous !== null && window.matchMedia('(max-width: 900px)').matches) {
+      editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    if (focusTitleRef.current && selectedId) {
+      focusTitleRef.current = false
+      summaryRef.current?.focus()
+    }
+  }, [selectedId])
 
   const loadText = useCallback(
     (text: string, name: string) => {
@@ -103,6 +140,8 @@ export default function IcsCalendar() {
         setError(null)
         setRawError(null)
         setView('form')
+        setSearch('')
+        setCalOpen(Boolean(parsed.name || parsed.description))
       } catch (e) {
         setError(t('tools:ics_calendar.parseError', { msg: e instanceof Error ? e.message : String(e) }))
       }
@@ -132,6 +171,8 @@ export default function IcsCalendar() {
     setRawError(null)
     setView('form')
     setFilename('calendar.ics')
+    setSearch('')
+    setCalOpen(false)
   }
 
   const handleExport = () => {
@@ -180,10 +221,14 @@ export default function IcsCalendar() {
     setRawError(null)
     setView('form')
     setFilename('calendar.ics')
+    setSearch('')
+    setCalOpen(false)
+    focusTitleRef.current = true
   }
 
   const addEvent = () => {
     const event = makeDefaultEvent()
+    focusTitleRef.current = true
     setDoc((current) => {
       const base = current ?? emptyCalendar()
       return { ...base, events: [...base.events, event] }
@@ -374,6 +419,17 @@ export default function IcsCalendar() {
     }
   }
 
+  const onListKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+    if (visibleEvents.length === 0) return
+    event.preventDefault()
+    const index = visibleEvents.findIndex((item) => item.uid === selectedId)
+    let next: number
+    if (index === -1) next = event.key === 'ArrowDown' ? 0 : visibleEvents.length - 1
+    else next = Math.min(Math.max(index + (event.key === 'ArrowDown' ? 1 : -1), 0), visibleEvents.length - 1)
+    setSelectedId(visibleEvents[next].uid)
+  }
+
   const onDragOver = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault()
     setDragging(true)
@@ -499,36 +555,49 @@ export default function IcsCalendar() {
           ) : (
             <>
               <div className="ics-viewbar">
-                <div className="ics-cal-fields">
-                  <div className="ics-field">
-                    <label className="ics-label" htmlFor="ics-cal-name">
-                      {t('tools:ics_calendar.calName')}
-                    </label>
-                    <input
-                      id="ics-cal-name"
-                      className="ics-input"
-                      type="text"
-                      value={doc.name ?? ''}
-                      onChange={(e) => patchDoc({ name: e.target.value || undefined })}
-                    />
+                <details className="ics-caldetails" open={calOpen}>
+                  <summary
+                    className="ics-caldetails-summary"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setCalOpen((open) => !open)
+                    }}
+                  >
+                    {t('tools:ics_calendar.calSettings')}
+                  </summary>
+                  <div className="ics-cal-fields">
+                    <div className="ics-field">
+                      <label className="ics-label" htmlFor="ics-cal-name">
+                        {t('tools:ics_calendar.calName')}
+                      </label>
+                      <input
+                        id="ics-cal-name"
+                        className="ics-input"
+                        type="text"
+                        value={doc.name ?? ''}
+                        onChange={(e) => patchDoc({ name: e.target.value || undefined })}
+                      />
+                    </div>
+                    <div className="ics-field">
+                      <label className="ics-label" htmlFor="ics-cal-desc">
+                        {t('tools:ics_calendar.calDesc')}
+                      </label>
+                      <input
+                        id="ics-cal-desc"
+                        className="ics-input"
+                        type="text"
+                        value={doc.description ?? ''}
+                        onChange={(e) => patchDoc({ description: e.target.value || undefined })}
+                      />
+                    </div>
                   </div>
-                  <div className="ics-field">
-                    <label className="ics-label" htmlFor="ics-cal-desc">
-                      {t('tools:ics_calendar.calDesc')}
-                    </label>
-                    <input
-                      id="ics-cal-desc"
-                      className="ics-input"
-                      type="text"
-                      value={doc.description ?? ''}
-                      onChange={(e) => patchDoc({ description: e.target.value || undefined })}
-                    />
-                  </div>
-                </div>
+                </details>
                 <div className="json-tabs-btns" role="tablist" aria-label={t('tools:ics_calendar.viewLabel')}>
                   <button
                     type="button"
                     role="tab"
+                    id="ics-tab-form"
+                    aria-controls="ics-panel-form"
                     aria-selected={view === 'form'}
                     className={view === 'form' ? 'is-active' : ''}
                     onClick={() => switchView('form')}
@@ -538,6 +607,8 @@ export default function IcsCalendar() {
                   <button
                     type="button"
                     role="tab"
+                    id="ics-tab-raw"
+                    aria-controls="ics-panel-raw"
                     aria-selected={view === 'raw'}
                     className={view === 'raw' ? 'is-active' : ''}
                     onClick={() => switchView('raw')}
@@ -548,7 +619,7 @@ export default function IcsCalendar() {
               </div>
 
               {view === 'raw' ? (
-                <div className="ics-raw">
+                <div className="ics-raw" role="tabpanel" id="ics-panel-raw" aria-labelledby="ics-tab-raw">
                   <LineNumberedTextarea
                     className="json-input ics-raw-input"
                     value={rawText}
@@ -577,7 +648,7 @@ export default function IcsCalendar() {
                   </div>
                 </div>
               ) : (
-                <div className="ics-layout">
+                <div className="ics-layout" role="tabpanel" id="ics-panel-form" aria-labelledby="ics-tab-form">
                   <aside className="ics-list-panel">
                     <div className="ics-list-head">
                       <span>
@@ -588,39 +659,115 @@ export default function IcsCalendar() {
                         {t('tools:ics_calendar.addEvent')}
                       </button>
                     </div>
-                    <div className="ics-list">
+                    {(doc.events.length > 3 || search !== '') && (
+                      <div className="ics-list-search">
+                        <input
+                          type="search"
+                          className="ics-input"
+                          placeholder={t('tools:ics_calendar.searchPlaceholder')}
+                          aria-label={t('tools:ics_calendar.searchPlaceholder')}
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                        />
+                      </div>
+                    )}
+                    <div className="ics-list" ref={listRef} onKeyDown={onListKeyDown}>
                       {doc.events.length === 0 ? (
                         <p className="ics-empty">{t('tools:ics_calendar.noEvents')}</p>
+                      ) : visibleEvents.length === 0 ? (
+                        <p className="ics-empty">{t('tools:ics_calendar.searchEmpty')}</p>
                       ) : (
-                        doc.events.map((event) => (
-                          <button
-                            type="button"
-                            key={event.uid}
+                        visibleEvents.map((event) => (
+                          <div
                             className={`ics-item${event.uid === selectedId ? ' is-active' : ''}`}
+                            data-uid={event.uid}
+                            key={event.uid}
                             onClick={() => setSelectedId(event.uid)}
                           >
-                            <span className="ics-item-title">
-                              {event.summary || t('tools:ics_calendar.untitled')}
+                            <button
+                              type="button"
+                              className="ics-item-main"
+                              onClick={() => setSelectedId(event.uid)}
+                            >
+                              <span className="ics-item-title">
+                                {event.summary || t('tools:ics_calendar.untitled')}
+                              </span>
+                              <span className="ics-item-meta">
+                                <span className="ics-item-when">{eventWhen(event) || '—'}</span>
+                                {event.rrule && (
+                                  <span className="ics-repeat-mark" title={t('tools:ics_calendar.repeat')}>
+                                    ↻
+                                  </span>
+                                )}
+                              </span>
+                            </button>
+                            <span className="ics-item-actions">
+                              <button
+                                type="button"
+                                className="ics-icon-btn"
+                                title={t('tools:ics_calendar.duplicate')}
+                                aria-label={t('tools:ics_calendar.duplicate')}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  duplicateEvent(event.uid)
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <rect x="9" y="9" width="12" height="12" rx="2" />
+                                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                className="ics-icon-btn ics-icon-danger"
+                                title={t('tools:ics_calendar.delete')}
+                                aria-label={t('tools:ics_calendar.delete')}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  deleteEvent(event.uid)
+                                }}
+                              >
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                  <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                </svg>
+                              </button>
                             </span>
-                            <span className="ics-item-meta">
-                              <span>{eventWhen(event) || '—'}</span>
-                              {event.rrule && (
-                                <span className="ics-repeat-mark" title={t('tools:ics_calendar.repeat')}>
-                                  ↻
-                                </span>
-                              )}
-                            </span>
-                          </button>
+                          </div>
                         ))
                       )}
                     </div>
                   </aside>
 
-                  <div className="ics-editor">
+                  <div className="ics-editor" ref={editorRef}>
                     {!selected ? (
                       <p className="ics-empty">{t('tools:ics_calendar.selectEvent')}</p>
                     ) : (
                       <>
+                        <div className="ics-editor-head">
+                          <div className="ics-editor-titles">
+                            <span className="ics-editor-title">
+                              {selected.summary || t('tools:ics_calendar.untitled')}
+                            </span>
+                            <span className="ics-editor-when">{eventWhen(selected) || '—'}</span>
+                          </div>
+                          <div className="ics-editor-actions">
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => duplicateEvent(selected.uid)}
+                            >
+                              {t('tools:ics_calendar.duplicate')}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => deleteEvent(selected.uid)}
+                            >
+                              {t('tools:ics_calendar.delete')}
+                            </button>
+                          </div>
+                        </div>
+
                         <div className="ics-row">
                           <div className="ics-field ics-span">
                             <label className="ics-label" htmlFor="ics-summary">
@@ -628,6 +775,7 @@ export default function IcsCalendar() {
                             </label>
                             <input
                               id="ics-summary"
+                              ref={summaryRef}
                               className="ics-input"
                               type="text"
                               value={selected.summary}
@@ -636,6 +784,8 @@ export default function IcsCalendar() {
                             />
                           </div>
                         </div>
+
+                        <h3 className="ics-section">{t('tools:ics_calendar.sections.time')}</h3>
 
                         <div className="ics-row">
                           <div className="ics-field">
@@ -704,37 +854,7 @@ export default function IcsCalendar() {
                           )}
                         </div>
 
-                        <div className="ics-row">
-                          <div className="ics-field">
-                            <label className="ics-label" htmlFor="ics-location">
-                              {t('tools:ics_calendar.location')}
-                            </label>
-                            <input
-                              id="ics-location"
-                              className="ics-input"
-                              type="text"
-                              value={selected.location}
-                              placeholder={t('tools:ics_calendar.locationPlaceholder')}
-                              onChange={(e) => patchEvent({ location: e.target.value })}
-                            />
-                          </div>
-                          <div className="ics-field">
-                            <label className="ics-label" htmlFor="ics-status">
-                              {t('tools:ics_calendar.status')}
-                            </label>
-                            <select
-                              id="ics-status"
-                              className="ics-select"
-                              value={selected.status.toUpperCase()}
-                              onChange={(e) => patchEvent({ status: e.target.value })}
-                            >
-                              <option value="">{t('tools:ics_calendar.statusOptions.none')}</option>
-                              <option value="CONFIRMED">{t('tools:ics_calendar.statusOptions.confirmed')}</option>
-                              <option value="TENTATIVE">{t('tools:ics_calendar.statusOptions.tentative')}</option>
-                              <option value="CANCELLED">{t('tools:ics_calendar.statusOptions.cancelled')}</option>
-                            </select>
-                          </div>
-                        </div>
+                        <h3 className="ics-section">{t('tools:ics_calendar.sections.repeat')}</h3>
 
                         <div className="ics-row">
                           <div className="ics-field">
@@ -859,21 +979,39 @@ export default function IcsCalendar() {
                           </div>
                         )}
 
-                        {(rr || Boolean(selected.rrule)) && (
+                        <h3 className="ics-section">{t('tools:ics_calendar.sections.details')}</h3>
+
+                        <div className="ics-row">
                           <div className="ics-field">
-                            <label className="ics-label" htmlFor="ics-rrule">
-                              {t('tools:ics_calendar.advancedRepeat')}
+                            <label className="ics-label" htmlFor="ics-location">
+                              {t('tools:ics_calendar.location')}
                             </label>
                             <input
-                              id="ics-rrule"
-                              className="ics-input ics-mono"
+                              id="ics-location"
+                              className="ics-input"
                               type="text"
-                              value={selected.rrule ?? ''}
-                              onChange={(e) => patchEvent({ rrule: e.target.value.trim() || undefined })}
+                              value={selected.location}
+                              placeholder={t('tools:ics_calendar.locationPlaceholder')}
+                              onChange={(e) => patchEvent({ location: e.target.value })}
                             />
-                            {rruleInvalid && <p className="ics-field-error">{t('tools:ics_calendar.rruleInvalid')}</p>}
                           </div>
-                        )}
+                          <div className="ics-field">
+                            <label className="ics-label" htmlFor="ics-status">
+                              {t('tools:ics_calendar.status')}
+                            </label>
+                            <select
+                              id="ics-status"
+                              className="ics-select"
+                              value={selected.status.toUpperCase()}
+                              onChange={(e) => patchEvent({ status: e.target.value })}
+                            >
+                              <option value="">{t('tools:ics_calendar.statusOptions.none')}</option>
+                              <option value="CONFIRMED">{t('tools:ics_calendar.statusOptions.confirmed')}</option>
+                              <option value="TENTATIVE">{t('tools:ics_calendar.statusOptions.tentative')}</option>
+                              <option value="CANCELLED">{t('tools:ics_calendar.statusOptions.cancelled')}</option>
+                            </select>
+                          </div>
+                        </div>
 
                         <div className="ics-row">
                           <div className="ics-field">
@@ -920,20 +1058,37 @@ export default function IcsCalendar() {
                           </div>
                         </div>
 
-                        {selected.extras.length > 0 && (
-                          <p className="ics-hint">
-                            {t('tools:ics_calendar.extrasNote', { count: selected.extras.length })}
-                          </p>
+                        {(rr || Boolean(selected.rrule) || selected.extras.length > 0) && (
+                          <details className="ics-details" open={rruleInvalid}>
+                            <summary className="ics-details-summary">
+                              {t('tools:ics_calendar.sections.advanced')}
+                            </summary>
+                            <div className="ics-details-body">
+                              {(rr || Boolean(selected.rrule)) && (
+                                <div className="ics-field">
+                                  <label className="ics-label" htmlFor="ics-rrule">
+                                    {t('tools:ics_calendar.advancedRepeat')}
+                                  </label>
+                                  <input
+                                    id="ics-rrule"
+                                    className="ics-input ics-mono"
+                                    type="text"
+                                    value={selected.rrule ?? ''}
+                                    onChange={(e) => patchEvent({ rrule: e.target.value.trim() || undefined })}
+                                  />
+                                  {rruleInvalid && (
+                                    <p className="ics-field-error">{t('tools:ics_calendar.rruleInvalid')}</p>
+                                  )}
+                                </div>
+                              )}
+                              {selected.extras.length > 0 && (
+                                <p className="ics-hint">
+                                  {t('tools:ics_calendar.extrasNote', { count: selected.extras.length })}
+                                </p>
+                              )}
+                            </div>
+                          </details>
                         )}
-
-                        <div className="ics-actions">
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => duplicateEvent(selected.uid)}>
-                            {t('tools:ics_calendar.duplicate')}
-                          </button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => deleteEvent(selected.uid)}>
-                            {t('tools:ics_calendar.delete')}
-                          </button>
-                        </div>
                       </>
                     )}
                   </div>
