@@ -463,6 +463,8 @@ const en = {
       desc: 'Import, edit, and export .ics calendar files — events with times, recurrences, locations, and more. Runs fully offline in your browser.',
       tags: ['time', 'data'],
       import: 'Import .ics',
+      newCal: 'New calendar',
+      confirmNew: 'Start over? The current calendar will be replaced.',
       sample: 'Load sample',
       export: 'Export .ics',
       clear: 'Clear',

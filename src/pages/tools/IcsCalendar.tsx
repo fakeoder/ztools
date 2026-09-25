@@ -154,9 +154,9 @@ export default function IcsCalendar() {
     setDoc((current) => (current ? { ...current, ...patch } : current))
   }
 
-  const addEvent = () => {
+  const makeDefaultEvent = (): IcsEvent => {
     const day = todayYmd()
-    const event: IcsEvent = {
+    return {
       uid: newUid(),
       dtstamp: nowIcsStamp(),
       summary: '',
@@ -169,6 +169,21 @@ export default function IcsCalendar() {
       end: { kind: 'datetime', local: `${day}T10:00:00`, utc: false },
       extras: [],
     }
+  }
+
+  const createCalendar = () => {
+    if (doc && !window.confirm(t('tools:ics_calendar.confirmNew'))) return
+    const event = makeDefaultEvent()
+    setDoc({ ...emptyCalendar(), events: [event] })
+    setSelectedId(event.uid)
+    setError(null)
+    setRawError(null)
+    setView('form')
+    setFilename('calendar.ics')
+  }
+
+  const addEvent = () => {
+    const event = makeDefaultEvent()
     setDoc((current) => {
       const base = current ?? emptyCalendar()
       return { ...base, events: [...base.events, event] }
@@ -430,6 +445,9 @@ export default function IcsCalendar() {
         <div className="ics-body" onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}>
           <div className="ics-toolbar">
             {importButton}
+            <button type="button" className="btn btn-ghost" onClick={createCalendar}>
+              {t('tools:ics_calendar.newCal')}
+            </button>
             <button type="button" className="btn btn-ghost" onClick={() => loadText(SAMPLE_ICS, 'sample.ics')}>
               {t('tools:ics_calendar.sample')}
             </button>
@@ -470,6 +488,9 @@ export default function IcsCalendar() {
               <p className="ics-drop-hint">{t('tools:ics_calendar.dropHint')}</p>
               <div className="ics-drop-actions">
                 {importButton}
+                <button type="button" className="btn btn-primary" onClick={createCalendar}>
+                  {t('tools:ics_calendar.newCal')}
+                </button>
                 <button type="button" className="btn btn-ghost" onClick={() => loadText(SAMPLE_ICS, 'sample.ics')}>
                   {t('tools:ics_calendar.sample')}
                 </button>

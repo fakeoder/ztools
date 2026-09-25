@@ -454,6 +454,8 @@ const zh = {
       desc: '导入、修改并导出 .ics 日历文件——事件支持时间、循环、地点等信息。完全离线运行。',
       tags: ['time', 'data'],
       import: '导入 .ics',
+      newCal: '新建日历',
+      confirmNew: '重新开始？当前日历将被替换。',
       sample: '加载示例',
       export: '导出 .ics',
       clear: '清空',
